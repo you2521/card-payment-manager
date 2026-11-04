@@ -80,15 +80,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return Array.from(map.values()).sort((a, b) => a.dayValue - b.dayValue);
   }, [sortedCards]);
 
-  // Calculate next upcoming payment card among all cards
-  const upcomingCardInfo = useMemo(() => {
+  // Calculate next upcoming payment cards among all cards (同日に複数ある場合は全件抽出)
+  const upcomingGroup = useMemo(() => {
     if (cards.length === 0) return null;
     const cardsWithDays = cards.map((c) => ({
       card: c,
       info: getDaysUntilNextPayment(c, new Date(), adjustForBankHolidays),
     }));
-    cardsWithDays.sort((a, b) => a.info.daysLeft - b.info.daysLeft);
-    return cardsWithDays[0];
+
+    // 最小日数を計算
+    const minDaysLeft = Math.min(...cardsWithDays.map((c) => c.info.daysLeft));
+    const matching = cardsWithDays.filter((c) => c.info.daysLeft === minDaysLeft);
+
+    // カード名で安定ソート
+    matching.sort((a, b) => a.card.name.localeCompare(b.card.name, 'ja'));
+
+    const first = matching[0];
+    const isAnyAdjusted = matching.some((m) => m.info.isAdjusted);
+    const adjustmentReason = matching.find((m) => m.info.isAdjusted)?.info.adjustmentReason;
+
+    return {
+      daysLeft: minDaysLeft,
+      nextDateWithWeekday: first.info.nextDateWithWeekday,
+      isToday: first.info.isToday,
+      isTomorrow: first.info.isTomorrow,
+      isAdjusted: isAnyAdjusted,
+      adjustmentReason,
+      items: matching,
+    };
   }, [cards, adjustForBankHolidays]);
 
   // Group cards by bank account
@@ -133,7 +152,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return (
       <div className="space-y-6 py-4 animate-fadeIn">
         <div className="bg-white dark:bg-[#1a1f26] border border-[#d0d5dd] dark:border-[#2e3642] rounded-lg p-6 sm:p-8 text-center space-y-4 shadow-xs">
-          <div className="mx-auto w-12 h-12 rounded-lg bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2] flex items-center justify-center">
+          <div className="mx-auto w-12 h-12 rounded-lg theme-bg-subtle text-[var(--color-primary)] flex items-center justify-center">
             <Sparkles className="h-6 w-6" />
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
@@ -148,12 +167,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
             <button
               onClick={onOpenAddAccount}
-              className="flex items-center justify-between p-4 rounded-md border-2 border-[#0047AB] bg-[#0047AB] hover:bg-[#003882] text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer text-left"
+              className="flex items-center justify-between p-4 rounded-md border-2 border-[var(--color-primary)] theme-bg-primary text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
                 <Landmark className="h-5 w-5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-blue-200">ステップ 1</div>
+                  <div className="text-[10px] opacity-80">ステップ 1</div>
                   <div>銀行口座を登録</div>
                 </div>
               </div>
@@ -165,7 +184,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="flex items-center justify-between p-4 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#222730] hover:bg-[#f4f6f8] dark:hover:bg-[#2c333f] text-[#101828] dark:text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
-                <CardIcon className="h-5 w-5 shrink-0 text-[#0047AB] dark:text-[#5294e2]" />
+                <CardIcon className="h-5 w-5 shrink-0 text-[var(--color-primary)]" />
                 <div>
                   <div className="text-[10px] text-[#667085] dark:text-[#8e98a8]">ステップ 2</div>
                   <div>カードを登録</div>
@@ -181,75 +200,153 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-5 animate-fadeIn">
-      {/* 1. 直近の引き落とし情報（DADS基準のコールアウトパネル） */}
-      {upcomingCardInfo ? (
+      {/* 1. 直近の引き落とし情報（DADS基準のコールアウトパネル - 同日複数表示対応） */}
+      {upcomingGroup ? (
         <section 
           aria-label="直近の引き落とし予定"
           className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-4 shadow-xs relative overflow-hidden"
         >
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* 上段：次回予定ラベル ＆ カウントダウンバッジ */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2] px-2 py-0.5 rounded-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider theme-bg-subtle text-[var(--color-primary)] px-2 py-0.5 rounded-xs">
                   次回引き落とし予定
                 </span>
-                <span className="text-xs font-mono font-bold text-[#101828] dark:text-white">
-                  {upcomingCardInfo.info.nextDateWithWeekday}
+                <span className="text-xs sm:text-sm font-mono font-bold text-[#101828] dark:text-white">
+                  {upcomingGroup.nextDateWithWeekday}
                 </span>
-                {upcomingCardInfo.info.isAdjusted && (
+                {upcomingGroup.isAdjusted && (
                   <span className="text-[10px] text-[#b54708] bg-[#b54708]/10 px-1.5 py-0.2 rounded-xs border border-[#b54708]/20 font-medium">
-                    ※{upcomingCardInfo.info.adjustmentReason}のため翌営業日
+                    ※{upcomingGroup.adjustmentReason}のため翌営業日
                   </span>
                 )}
               </div>
 
               {/* カウントダウン表示（スマホでも収まりの良いスマートバッジ） */}
-              <span className={`text-xs px-2.5 py-0.5 rounded-sm font-bold shrink-0 ${
-                upcomingCardInfo.info.isToday
-                  ? 'bg-[#d92d20] text-white shadow-xs'
-                  : upcomingCardInfo.info.isTomorrow
-                  ? 'bg-[#b54708] text-white shadow-xs'
-                  : 'bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#0047AB] dark:text-[#5294e2]'
-              }`}>
-                {upcomingCardInfo.info.isToday ? '本日引き落とし' : upcomingCardInfo.info.isTomorrow ? '明日引き落とし' : `あと ${upcomingCardInfo.info.daysLeft} 日`}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={`text-xs px-2.5 py-0.5 rounded-sm font-bold ${
+                  upcomingGroup.isToday
+                    ? 'bg-[#d92d20] text-white shadow-xs'
+                    : upcomingGroup.isTomorrow
+                    ? 'bg-[#b54708] text-white shadow-xs'
+                    : 'bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[var(--color-primary)]'
+                }`}>
+                  {upcomingGroup.isToday
+                    ? '本日引き落とし'
+                    : upcomingGroup.isTomorrow
+                    ? '明日引き落とし'
+                    : `あと ${upcomingGroup.daysLeft} 日`}
+                </span>
+                {upcomingGroup.items.length > 1 && (
+                  <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#98a2b3]">
+                    {upcomingGroup.items.length}件
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* 中段：カード名 & 支払日 */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => onEditCard(upcomingCardInfo.card)}
-                className="text-base sm:text-lg font-bold text-[#101828] dark:text-white hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left truncate max-w-full"
-                title={`${upcomingCardInfo.card.name} を編集`}
-              >
-                {upcomingCardInfo.card.name}
-              </button>
-              <span className="text-xs px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] font-mono font-bold text-[#344054] dark:text-[#cfd5e0]">
-                {formatPaymentDay(upcomingCardInfo.card, true)}
-              </span>
-            </div>
-
-            {/* 下段：引き落とし口座 */}
-            <div className="text-xs text-[#475467] dark:text-[#98a2b3] flex items-center gap-1.5 pt-0.5">
-              <Landmark className="h-3.5 w-3.5 shrink-0" />
-              <span>引き落とし口座:</span>
-              {(() => {
-                const acc = getBankAccount(accounts, upcomingCardInfo.card.bankAccountId);
-                if (!acc) return <span className="text-[#d92d20] font-bold">未登録</span>;
+            {/* 中段・下段：カード一覧（1件または複数件） */}
+            {upcomingGroup.items.length === 1 ? (
+              /* 1件の場合 */
+              (() => {
+                const { card, info } = upcomingGroup.items[0];
+                const acc = getBankAccount(accounts, card.bankAccountId);
+                const brandCfg = getBrandColorConfig(card.brandColor, isDark);
                 return (
-                  <button
-                    type="button"
-                    onClick={() => onEditAccount(acc)}
-                    className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1"
-                  >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.color || '#0047AB' }} />
-                    <span>{acc.name}</span>
-                  </button>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onEditCard(card)}
+                        className="text-base sm:text-lg font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left truncate max-w-full"
+                        title={`${card.name} を編集`}
+                      >
+                        {card.name}
+                      </button>
+                      <span className="text-xs px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] font-mono font-bold text-[#344054] dark:text-[#cfd5e0]">
+                        {formatPaymentDay(card, true)}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-[#475467] dark:text-[#98a2b3] flex items-center gap-1.5 pt-0.5">
+                      <Landmark className="h-3.5 w-3.5 shrink-0" />
+                      <span>引き落とし口座:</span>
+                      {acc ? (
+                        <button
+                          type="button"
+                          onClick={() => onEditAccount(acc)}
+                          className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.color || 'var(--color-primary)' }} />
+                          <span>{acc.name}</span>
+                        </button>
+                      ) : (
+                        <span className="text-[#d92d20] font-bold">未登録</span>
+                      )}
+                    </div>
+                  </div>
                 );
-              })()}
-            </div>
+              })()
+            ) : (
+              /* 複数件ある場合：同日引き落としカードをリスト表示 */
+              <div className="divide-y divide-[#d0d5dd]/50 dark:divide-[#2e3642] pt-1">
+                {upcomingGroup.items.map(({ card, info }, idx) => {
+                  const acc = getBankAccount(accounts, card.bankAccountId);
+                  const brandCfg = getBrandColorConfig(card.brandColor, isDark);
+                  return (
+                    <div
+                      key={card.id}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 py-2 ${idx === 0 ? 'pt-0.5' : ''}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => onEditCard(card)}
+                          className="text-sm sm:text-base font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left truncate"
+                          title={`${card.name} を編集`}
+                        >
+                          {card.name}
+                        </button>
+                        <span className="text-[11px] px-1.5 py-0.2 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] font-mono font-bold text-[#344054] dark:text-[#cfd5e0]">
+                          {formatPaymentDay(card, true)}
+                        </span>
+                        {info.isAdjusted && (
+                          <span className="text-[9px] text-[#b54708] bg-[#b54708]/10 px-1 py-0.2 rounded-xs border border-[#b54708]/20 font-medium">
+                            翌営業日
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-xs text-[#475467] dark:text-[#98a2b3] flex items-center gap-1.5 pl-4.5 sm:pl-0 shrink-0">
+                        <Landmark className="h-3 w-3 shrink-0" />
+                        <span>口座:</span>
+                        {acc ? (
+                          <button
+                            type="button"
+                            onClick={() => onEditAccount(acc)}
+                            className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1 max-w-[140px] sm:max-w-none truncate"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: acc.color || 'var(--color-primary)' }} />
+                            <span className="truncate">{acc.name}</span>
+                          </button>
+                        ) : (
+                          <span className="text-[#d92d20] font-bold">未登録</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
       ) : (
@@ -257,7 +354,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <p className="text-xs sm:text-sm text-[#475467] dark:text-[#98a2b3]">クレジットカードが未登録です。</p>
           <button
             onClick={onOpenAddCard}
-            className="px-3 py-1.5 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold transition-all shadow-xs"
+            className="px-3 py-1.5 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             カードを追加
           </button>
@@ -272,7 +369,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => setViewGroupMode('date_sort')}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm font-bold transition-all cursor-pointer flex-1 sm:flex-none ${
               viewGroupMode === 'date_sort'
-                ? 'bg-white dark:bg-[#1a1f26] text-[#0047AB] dark:text-[#5294e2] shadow-xs'
+                ? 'bg-white dark:bg-[#1a1f26] text-[var(--color-primary)] shadow-xs'
                 : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-white'
             }`}
           >
@@ -283,7 +380,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => setViewGroupMode('bank_group')}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm font-bold transition-all cursor-pointer flex-1 sm:flex-none ${
               viewGroupMode === 'bank_group'
-                ? 'bg-white dark:bg-[#1a1f26] text-[#0047AB] dark:text-[#5294e2] shadow-xs'
+                ? 'bg-white dark:bg-[#1a1f26] text-[var(--color-primary)] shadow-xs'
                 : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-white'
             }`}
           >
@@ -302,14 +399,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold border border-[#d0d5dd] dark:border-[#363f4e] bg-[#f4f6f8] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] hover:bg-[#eaecf0] dark:hover:bg-[#2c333f] cursor-pointer"
           >
             <span>詳細表示</span>
-            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors relative flex items-center ${showDetails ? 'bg-[#0047AB]' : 'bg-[#d0d5dd] dark:bg-[#475467]'}`}>
+            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors relative flex items-center ${showDetails ? 'theme-bg-primary' : 'bg-[#d0d5dd] dark:bg-[#475467]'}`}>
               <div className={`w-3 h-3 rounded-full bg-white shadow-xs transition-transform duration-200 ${showDetails ? 'translate-x-4' : 'translate-x-0'}`} />
             </div>
           </button>
 
           <button
             onClick={onOpenAddCard}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>カード追加</span>
@@ -326,7 +423,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <p className="text-sm font-bold text-[#101828] dark:text-white">登録されたカードがありません</p>
               <button
                 onClick={onOpenAddCard}
-                className="px-4 py-2 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold"
+                className="px-4 py-2 rounded-md theme-bg-primary text-white text-xs font-bold cursor-pointer"
               >
                 最初のクレジットカードを登録する
               </button>
@@ -341,7 +438,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <div className="px-4 py-2 bg-[#f4f6f8] dark:bg-[#222730] border-b border-[#d0d5dd] dark:border-[#2e3642] flex items-center justify-between">
                     <span className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-[#0047AB] dark:text-[#5294e2]" />
+                      <Calendar className="h-4 w-4 text-[var(--color-primary)]" />
                       {group.label} 引き落とし
                     </span>
                     <span className="text-xs font-bold text-[#475467] dark:text-[#98a2b3]">
@@ -362,12 +459,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <span
                               className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: brandCfg.hex || '#0047AB' }}
+                              style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
                             />
                             <button
                               type="button"
                               onClick={() => onEditCard(card)}
-                              className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white truncate hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left"
+                              className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white truncate hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
                             >
                               {card.name}
                             </button>
@@ -378,12 +475,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => onEditAccount(linkedAccount)}
-                                className="inline-flex items-center gap-1 text-xs text-[#475467] dark:text-[#98a2b3] hover:text-[#0047AB] dark:hover:text-white hover:underline cursor-pointer font-medium max-w-[150px] sm:max-w-none truncate"
+                                className="inline-flex items-center gap-1 text-xs text-[#475467] dark:text-[#98a2b3] hover:text-[var(--color-primary)] dark:hover:text-white hover:underline cursor-pointer font-medium max-w-[150px] sm:max-w-none truncate"
                                 title={linkedAccount.name}
                               >
                                 <span
                                   className="w-1.5 h-1.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: linkedAccount.color || '#0047AB' }}
+                                  style={{ backgroundColor: linkedAccount.color || 'var(--color-primary)' }}
                                 />
                                 <span className="truncate">{linkedAccount.name}</span>
                               </button>
@@ -427,7 +524,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onEditCard(card)}
-                              className="text-sm sm:text-base font-bold text-[#101828] dark:text-white hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left"
+                              className="text-sm sm:text-base font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
                             >
                               {card.name}
                             </button>
@@ -446,7 +543,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                 onClick={() => onEditAccount(linkedAccount)}
                                 className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1"
                               >
-                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: linkedAccount.color || '#0047AB' }} />
+                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: linkedAccount.color || 'var(--color-primary)' }} />
                                 <span>{linkedAccount.name}</span>
                               </button>
                             ) : (
@@ -480,14 +577,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => onEditCard(card)}
-                            className="p-1.5 rounded-md hover:bg-[#f4f6f8] dark:hover:bg-[#222730] text-[#667085] hover:text-[#0047AB] dark:text-[#8e98a8] dark:hover:text-[#5294e2]"
+                            className="p-1.5 rounded-md hover:bg-[#f4f6f8] dark:hover:bg-[#222730] text-[#667085] hover:text-[var(--color-primary)] cursor-pointer"
                             title="編集"
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => onDeleteCard(card.id)}
-                            className="p-1.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-[#667085] hover:text-[#d92d20] dark:text-[#8e98a8] dark:hover:text-[#d92d20]"
+                            className="p-1.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-[#667085] hover:text-[#d92d20] cursor-pointer"
                             title="削除"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -511,7 +608,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             >
               <div className="flex items-center justify-between px-4 py-2.5 bg-[#f4f6f8] dark:bg-[#222730] border-b border-[#d0d5dd] dark:border-[#2e3642]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: account.color || '#0047AB' }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: account.color || 'var(--color-primary)' }} />
                   {account.id === '__unassigned__' ? (
                     <span className="text-xs sm:text-sm font-bold text-[#d92d20] flex items-center gap-1">
                       <AlertCircle className="h-3.5 w-3.5" />
@@ -521,7 +618,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onEditAccount(account)}
-                      className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left"
+                      className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
                     >
                       {account.name}
                     </button>
@@ -551,7 +648,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onEditCard(card)}
-                            className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left"
+                            className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
                           >
                             {card.name}
                           </button>
@@ -564,14 +661,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => onEditCard(card)}
-                          className="p-1 rounded-md text-[#667085] hover:text-[#0047AB]"
+                          className="p-1 rounded-md text-[#667085] hover:text-[var(--color-primary)] cursor-pointer"
                           title="編集"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => onDeleteCard(card.id)}
-                          className="p-1 rounded-md text-[#667085] hover:text-[#d92d20]"
+                          className="p-1 rounded-md text-[#667085] hover:text-[#d92d20] cursor-pointer"
                           title="削除"
                         >
                           <Trash2 className="h-3.5 w-3.5" />

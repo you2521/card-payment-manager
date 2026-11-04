@@ -2,6 +2,37 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --color-primary: #0047AB;
+  --color-primary-hover: #003882;
+  --color-primary-subtle: #eff6ff;
+  --color-primary-subtle-dark: rgba(0, 71, 171, 0.25);
+}
+
+.theme-bg-primary {
+  background-color: var(--color-primary);
+}
+
+.theme-bg-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.theme-text-primary {
+  color: var(--color-primary);
+}
+
+.theme-border-primary {
+  border-color: var(--color-primary);
+}
+
+.theme-bg-subtle {
+  background-color: var(--color-primary-subtle);
+}
+
+.dark .theme-bg-subtle {
+  background-color: var(--color-primary-subtle-dark);
+}
+
 @layer utilities {
   @keyframes fadeIn {
     from {

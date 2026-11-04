@@ -90,7 +90,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
         {/* モーダルヘッダー */}
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#222730]">
           <div className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-[#0047AB] dark:text-[#5294e2]" />
+            <CalendarIcon className="h-5 w-5 text-[var(--color-primary)]" />
             <div>
               <h2 className="text-base sm:text-lg font-bold">
                 支払日カレンダー
@@ -103,7 +103,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f]"
+            className="p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f] cursor-pointer"
             title="閉じる"
           >
             <X className="h-5 w-5" />
@@ -129,7 +129,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
               {!isTodayMonth && (
                 <button
                   onClick={handleCurrentMonth}
-                  className="px-2 py-0.5 text-xs font-bold rounded-xs bg-[#0047AB] text-white hover:bg-[#003882] transition-colors shadow-xs"
+                  className="px-2 py-0.5 text-xs font-bold rounded-xs theme-bg-primary text-white transition-colors shadow-xs cursor-pointer"
                 >
                   今月へ
                 </button>
@@ -138,7 +138,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
 
             <button
               onClick={handleNextMonth}
-              className="p-1.5 rounded-md hover:bg-white dark:hover:bg-[#1a1f26] border border-transparent hover:border-[#d0d5dd] text-[#344054] dark:text-[#cfd5e0] transition-colors"
+              className="p-1.5 rounded-md hover:bg-white dark:hover:bg-[#1a1f26] border border-transparent hover:border-[#d0d5dd] text-[#344054] dark:text-[#cfd5e0] transition-colors cursor-pointer"
               title="翌月"
             >
               <ChevronRight className="h-4 w-4" />
@@ -150,7 +150,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
             {WEEKDAYS.map((wd) => (
               <div
                 key={wd.name}
-                className={wd.isSunday ? 'text-[#d92d20]' : wd.isSaturday ? 'text-[#0047AB] dark:text-[#5294e2]' : 'text-[#475467] dark:text-[#98a2b3]'}
+                className={wd.isSunday ? 'text-[#d92d20]' : wd.isSaturday ? 'text-[var(--color-primary)]' : 'text-[#475467] dark:text-[#98a2b3]'}
               >
                 {wd.name}
               </div>
@@ -182,11 +182,11 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
                   onClick={() => handleSelectDay(dayNum)}
                   className={`h-12 sm:h-14 p-1 rounded-xs flex flex-col justify-between items-start transition-all border text-left cursor-pointer ${
                     isSelectedCell
-                      ? 'border-[#0047AB] bg-[#0047AB]/10 ring-1 ring-[#0047AB]'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] ring-1 ring-[var(--color-primary)]'
                       : isTodayCell
-                      ? 'border-[#0047AB]/50 bg-[#0047AB]/5'
+                      ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-subtle)]/50'
                       : hasCards
-                      ? 'bg-[#b54708]/5 border-[#b54708]/30 hover:border-[#0047AB]'
+                      ? 'bg-[#b54708]/5 border-[#b54708]/30 hover:border-[var(--color-primary)]'
                       : 'bg-white dark:bg-[#1a1f26] border-[#d0d5dd]/70 dark:border-[#2e3642] hover:bg-[#f4f6f8] dark:hover:bg-[#222730]'
                   }`}
                 >
@@ -194,11 +194,11 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
                     <span
                       className={`text-xs font-bold font-mono ${
                         isTodayCell
-                          ? 'w-5 h-5 rounded-full bg-[#0047AB] text-white flex items-center justify-center text-[10px]'
+                          ? 'w-5 h-5 rounded-full theme-bg-primary text-white flex items-center justify-center text-[10px]'
                           : isSunday
                           ? 'text-[#d92d20]'
                           : isSaturday
-                          ? 'text-[#0047AB] dark:text-[#5294e2]'
+                          ? 'text-[var(--color-primary)]'
                           : 'text-[#101828] dark:text-white'
                       }`}
                     >
@@ -261,7 +261,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
                       <div className="flex items-center gap-2">
                         <span
                           className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: brandCfg.hex || '#0047AB' }}
+                          style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
                         />
                         <span className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white">
                           {card.name}
@@ -271,7 +271,7 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({
                       <div className="shrink-0 text-xs text-[#475467] dark:text-[#98a2b3]">
                         {linkedAccount ? (
                           <span className="inline-flex items-center gap-1 font-medium">
-                            <Landmark className="h-3 w-3 text-[#0047AB] dark:text-[#5294e2]" />
+                            <Landmark className="h-3 w-3 text-[var(--color-primary)]" />
                             <span>{linkedAccount.name}</span>
                           </span>
                         ) : (

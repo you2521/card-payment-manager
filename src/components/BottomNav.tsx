@@ -31,21 +31,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => setActiveTab('dashboard')}
           className={`relative flex flex-col items-center justify-center h-full py-1 transition-colors cursor-pointer ${
             activeTab === 'dashboard'
-              ? 'text-[#0047AB] dark:text-[#5294e2] font-bold'
+              ? 'text-[var(--color-primary)] font-bold'
               : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
           }`}
         >
           <div className="relative">
             <LayoutDashboard className="h-5 w-5" />
             {cardCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#0047AB] text-white text-[9px] font-mono font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full theme-bg-primary text-white text-[9px] font-mono font-bold flex items-center justify-center">
                 {cardCount}
               </span>
             )}
           </div>
           <span className="text-[10px] mt-0.5">概要</span>
           {activeTab === 'dashboard' && (
-            <span className="absolute top-0 left-3 right-3 h-0.5 bg-[#0047AB] dark:bg-[#5294e2] rounded-full" />
+            <span className="absolute top-0 left-3 right-3 h-0.5 theme-bg-primary rounded-full" />
           )}
         </button>
 
@@ -55,21 +55,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => setActiveTab('cards')}
           className={`relative flex flex-col items-center justify-center h-full py-1 transition-colors cursor-pointer ${
             activeTab === 'cards'
-              ? 'text-[#0047AB] dark:text-[#5294e2] font-bold'
+              ? 'text-[var(--color-primary)] font-bold'
               : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
           }`}
         >
           <div className="relative">
             <CreditCard className="h-5 w-5" />
             {cardCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#0047AB] text-white text-[9px] font-mono font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full theme-bg-primary text-white text-[9px] font-mono font-bold flex items-center justify-center">
                 {cardCount}
               </span>
             )}
           </div>
           <span className="text-[10px] mt-0.5">カード</span>
           {activeTab === 'cards' && (
-            <span className="absolute top-0 left-3 right-3 h-0.5 bg-[#0047AB] dark:bg-[#5294e2] rounded-full" />
+            <span className="absolute top-0 left-3 right-3 h-0.5 theme-bg-primary rounded-full" />
           )}
         </button>
 
@@ -79,21 +79,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => setActiveTab('accounts')}
           className={`relative flex flex-col items-center justify-center h-full py-1 transition-colors cursor-pointer ${
             activeTab === 'accounts'
-              ? 'text-[#0047AB] dark:text-[#5294e2] font-bold'
+              ? 'text-[var(--color-primary)] font-bold'
               : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
           }`}
         >
           <div className="relative">
             <Landmark className="h-5 w-5" />
             {accountCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#0047AB] text-white text-[9px] font-mono font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full theme-bg-primary text-white text-[9px] font-mono font-bold flex items-center justify-center">
                 {accountCount}
               </span>
             )}
           </div>
           <span className="text-[10px] mt-0.5">口座</span>
           {activeTab === 'accounts' && (
-            <span className="absolute top-0 left-3 right-3 h-0.5 bg-[#0047AB] dark:bg-[#5294e2] rounded-full" />
+            <span className="absolute top-0 left-3 right-3 h-0.5 theme-bg-primary rounded-full" />
           )}
         </button>
 

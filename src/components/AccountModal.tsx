@@ -91,14 +91,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         {/* ヘッダー */}
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#222730]">
           <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-[#0047AB] dark:text-[#5294e2]" />
+            <Landmark className="h-5 w-5 text-[var(--color-primary)]" />
             <h2 className="text-base sm:text-lg font-bold">
               {editingAccount ? '銀行口座情報の変更' : '銀行口座の新規登録'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f]"
+            className="p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f] cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -128,7 +128,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="例: 三井住友銀行, 楽天銀行, 三菱UFJ銀行"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             {suggestion && (
               <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#b54708]">
@@ -162,7 +162,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <select
               value={accountType}
               onChange={(e) => setAccountType(e.target.value)}
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <option value="普通">普通預金</option>
               <option value="当座">当座預金</option>
@@ -193,9 +193,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   key={c.id}
                   type="button"
                   onClick={() => setColor(c.id)}
-                  className={`flex items-center gap-1.5 p-2 rounded-md border text-xs text-left transition-all ${
+                  className={`flex items-center gap-1.5 p-2 rounded-md border text-xs text-left transition-all cursor-pointer ${
                     color === c.id
-                      ? 'border-[#0047AB] bg-[#0047AB]/10 text-[#0047AB] dark:text-[#5294e2] font-bold'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
                       : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#8e98a8]'
                   }`}
                 >
@@ -221,7 +221,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="例: 給与受取口座、光熱費引き落とし兼用"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[#0047AB] resize-none"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
             />
           </div>
 
@@ -235,7 +235,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     onDeleteAccount(editingAccount.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border border-[#d92d20]/30 text-[#d92d20] hover:bg-rose-50 text-xs font-bold"
+                  className="flex items-center gap-1 px-3 py-2 rounded-md border border-[#d92d20]/30 text-[#d92d20] hover:bg-rose-50 text-xs font-bold cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>削除する</span>
@@ -247,13 +247,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730]"
+                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730] cursor-pointer"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 rounded-md theme-bg-primary text-white text-xs font-bold shadow-xs cursor-pointer"
               >
                 {editingAccount ? '更新する' : '登録する'}
               </button>

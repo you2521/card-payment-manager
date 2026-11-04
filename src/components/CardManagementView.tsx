@@ -28,7 +28,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
       {/* スマートヘッダー（見出しと追加ボタンを1行に集約し、一覧性を最大化） */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md theme-bg-subtle text-[var(--color-primary)]">
             <CardIcon className="h-4 w-4" />
           </div>
           <h2 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
@@ -41,7 +41,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
 
         <button
           onClick={onOpenAddCard}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>カードを追加</span>
@@ -61,7 +61,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
               </p>
               <button
                 onClick={onOpenAddAccount}
-                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold hover:bg-[#f4f6f8] dark:hover:bg-[#222730]"
+                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold hover:bg-[#f4f6f8] dark:hover:bg-[#222730] cursor-pointer"
               >
                 先に銀行口座を登録する
               </button>
@@ -69,7 +69,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
           ) : (
             <button
               onClick={onOpenAddCard}
-              className="px-4 py-2 rounded-md bg-[#0047AB] hover:bg-[#003882] text-white text-xs font-bold shadow-xs"
+              className="px-4 py-2 rounded-md theme-bg-primary text-white text-xs font-bold shadow-xs cursor-pointer"
             >
               カードを登録する
             </button>
@@ -99,12 +99,12 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                      style={{ backgroundColor: brandCfg.hex || '#0047AB' }}
+                      style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
                     />
                     <button
                       type="button"
                       onClick={() => onEditCard(card)}
-                      className="text-sm font-bold text-[#101828] dark:text-white hover:text-[#0047AB] dark:hover:text-[#5294e2] hover:underline cursor-pointer text-left truncate"
+                      className="text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left truncate"
                     >
                       {card.name}
                     </button>
@@ -112,6 +112,11 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                       <span className="text-[10px] text-[#667085] dark:text-[#8e98a8] bg-[#f4f6f8] dark:bg-[#222730] px-1.5 py-0.2 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e] inline-flex items-center gap-0.5">
                         <Calendar className="h-2.5 w-2.5" />
                         <span>{card.closingDay}</span>
+                      </span>
+                    )}
+                    {card.adjustForBankHolidays === false && (
+                      <span className="text-[10px] text-[#667085] dark:text-[#8e98a8] bg-[#f4f6f8] dark:bg-[#222730] px-1.5 py-0.2 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
+                        休日シフトなし
                       </span>
                     )}
                   </div>
@@ -123,7 +128,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                         <span className="text-[#101828] dark:text-white inline-flex items-center gap-1 font-bold">
                           <span
                             className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ backgroundColor: account.color || '#0047AB' }}
+                            style={{ backgroundColor: account.color || 'var(--color-primary)' }}
                           />
                           <span className="truncate max-w-[150px] sm:max-w-none">{account.name}</span>
                         </span>
@@ -145,14 +150,14 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                   <button
                     onClick={() => onEditCard(card)}
                     title="カード情報を編集"
-                    className="p-2 rounded-md hover:bg-[#f4f6f8] dark:hover:bg-[#2c333f] text-[#667085] hover:text-[#0047AB] dark:text-[#8e98a8] dark:hover:text-[#5294e2] transition-colors"
+                    className="p-2 rounded-md hover:bg-[#f4f6f8] dark:hover:bg-[#2c333f] text-[#667085] hover:text-[var(--color-primary)] transition-colors cursor-pointer"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => onDeleteCard(card.id)}
                     title="カードを削除"
-                    className="p-2 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#667085] hover:text-[#d92d20] dark:text-[#8e98a8] dark:hover:text-[#d92d20] transition-colors"
+                    className="p-2 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#667085] hover:text-[#d92d20] transition-colors cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

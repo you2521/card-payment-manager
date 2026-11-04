@@ -90,7 +90,13 @@ export function getNextPaymentDate(
 } {
   const rawDate = getRawScheduledDate(card, referenceDate);
 
-  if (!adjustForHolidays) {
+  // カードごとの設定を最優先（未設定時は全体のデフォルト設定を採用）
+  const shouldAdjust =
+    card.adjustForBankHolidays !== undefined
+      ? card.adjustForBankHolidays
+      : adjustForHolidays;
+
+  if (!shouldAdjust) {
     return {
       date: rawDate,
       isAdjusted: false,

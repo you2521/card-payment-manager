@@ -45,6 +45,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   const [closingDay, setClosingDay] = useState('');
   const [brandColor, setBrandColor] = useState('indigo');
   const [memo, setMemo] = useState('');
+  const [adjustForBankHolidays, setAdjustForBankHolidays] = useState<boolean>(true);
   const [error, setError] = useState('');
 
   const suggestion = suggestCardColor(name);
@@ -66,6 +67,7 @@ export const CardModal: React.FC<CardModalProps> = ({
       setClosingDay(editingCard.closingDay || '');
       setBrandColor(editingCard.brandColor || 'indigo');
       setMemo(editingCard.memo || '');
+      setAdjustForBankHolidays(editingCard.adjustForBankHolidays ?? true);
     } else {
       setName('');
       setPaymentDayType('day');
@@ -74,6 +76,7 @@ export const CardModal: React.FC<CardModalProps> = ({
       setClosingDay('');
       setBrandColor('indigo');
       setMemo('');
+      setAdjustForBankHolidays(true);
     }
     setError('');
   }, [editingCard, isOpen, bankAccounts]);
@@ -100,6 +103,7 @@ export const CardModal: React.FC<CardModalProps> = ({
         closingDay: closingDay.trim() || undefined,
         brandColor,
         memo: memo.trim() || undefined,
+        adjustForBankHolidays,
       },
       editingCard?.id
     );
@@ -113,7 +117,7 @@ export const CardModal: React.FC<CardModalProps> = ({
         {/* モーダルヘッダー */}
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#222730]">
           <div className="flex items-center gap-2">
-            <CardIcon className="h-5 w-5 text-[#0047AB] dark:text-[#5294e2]" />
+            <CardIcon className="h-5 w-5 text-[var(--color-primary)]" />
             <h2 className="text-base sm:text-lg font-bold">
               {editingCard ? 'クレジットカード情報の変更' : 'クレジットカード新規登録'}
             </h2>
@@ -150,7 +154,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="例: 楽天カード, 三井住友カード, JALカード"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             {suggestion && (
               <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#b54708]">
@@ -188,7 +192,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 onClick={() => setPaymentDayType('day')}
                 className={`p-2.5 rounded-md border text-xs font-bold transition-all text-center cursor-pointer ${
                   paymentDayType === 'day'
-                    ? 'border-[#0047AB] bg-[#0047AB]/10 text-[#0047AB] dark:text-[#5294e2] dark:border-[#5294e2]'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
                     : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#475467] dark:text-[#8e98a8]'
                 }`}
               >
@@ -199,7 +203,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 onClick={() => setPaymentDayType('end_of_month')}
                 className={`p-2.5 rounded-md border text-xs font-bold transition-all text-center cursor-pointer ${
                   paymentDayType === 'end_of_month'
-                    ? 'border-[#0047AB] bg-[#0047AB]/10 text-[#0047AB] dark:text-[#5294e2] dark:border-[#5294e2]'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
                     : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#475467] dark:text-[#8e98a8]'
                 }`}
               >
@@ -213,7 +217,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 <select
                   value={paymentDayValue}
                   onChange={(e) => setPaymentDayValue(Number(e.target.value))}
-                  className="rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-1.5 text-sm font-bold font-mono focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+                  className="rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-1.5 text-sm font-bold font-mono focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                     <option key={day} value={day}>
@@ -224,6 +228,30 @@ export const CardModal: React.FC<CardModalProps> = ({
                 <span className="text-xs text-[#475467] dark:text-[#98a2b3]">に引き落とし</span>
               </div>
             )}
+
+            {/* カード個別：土日祝日の営業日補正トグル */}
+            <div className="flex items-center justify-between p-2.5 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] bg-[#f8fafc] dark:bg-[#151921] transition-colors">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-[#101828] dark:text-[#f0f2f5] flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                  <span>土日・祝日の引き落とし日補正</span>
+                </div>
+                <p className="text-[11px] text-[#667085] dark:text-[#98a2b3]">
+                  {adjustForBankHolidays
+                    ? '支払日が休日の場合は翌営業日に自動シフト'
+                    : '休日でもシフトせず該当日付のまま表示'}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={adjustForBankHolidays}
+                  onChange={(e) => setAdjustForBankHolidays(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-5 bg-[#d0d5dd] dark:bg-[#363f4e] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
+              </label>
+            </div>
           </div>
 
           {/* 引き落とし口座 */}
@@ -237,7 +265,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                   <button
                     type="button"
                     onClick={onOpenAddAccountModal}
-                    className="text-[11px] text-[#0047AB] dark:text-[#5294e2] underline cursor-pointer"
+                    className="text-[11px] text-[var(--color-primary)] underline cursor-pointer"
                   >
                     + 口座を新規追加
                   </button>
@@ -256,7 +284,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                   <button
                     type="button"
                     onClick={onOpenAddAccountModal}
-                    className="px-3 py-1 bg-[#0047AB] text-white text-xs font-bold rounded-md"
+                    className="px-3 py-1 theme-bg-primary text-white text-xs font-bold rounded-md cursor-pointer"
                   >
                     銀行口座を登録する
                   </button>
@@ -267,7 +295,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 required
                 value={bankAccountId}
                 onChange={(e) => setBankAccountId(e.target.value)}
-                className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+                className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 <option value="">選択してください</option>
                 {bankAccounts.map((acc) => (
@@ -294,7 +322,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               value={closingDay}
               onChange={(e) => setClosingDay(e.target.value)}
               placeholder="例: 前月15日締め, 当月末日締め"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[#0047AB]"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
 
@@ -322,13 +350,13 @@ export const CardModal: React.FC<CardModalProps> = ({
                   onClick={() => setBrandColor(c.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs transition-all ${
                     brandColor === c.id
-                      ? 'border-[#0047AB] bg-[#0047AB]/10 text-[#0047AB] dark:text-[#5294e2] font-bold'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
                       : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#8e98a8]'
                   }`}
                 >
                   <span className={`h-2.5 w-2.5 rounded-full ${c.bg}`} />
                   <span>{c.label}</span>
-                  {brandColor === c.id && <Check className="h-3 w-3 text-[#0047AB]" />}
+                  {brandColor === c.id && <Check className="h-3 w-3 text-[var(--color-primary)]" />}
                 </button>
               ))}
             </div>
@@ -349,7 +377,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               placeholder="例: 固定費引き落とし用、ポイント特約店用"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[#0047AB] resize-none"
+              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
             />
           </div>
 
@@ -363,7 +391,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                     onDeleteCard(editingCard.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border border-[#d92d20]/30 text-[#d92d20] hover:bg-rose-50 text-xs font-bold"
+                  className="flex items-center gap-1 px-3 py-2 rounded-md border border-[#d92d20]/30 text-[#d92d20] hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-bold cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>削除する</span>
@@ -375,14 +403,14 @@ export const CardModal: React.FC<CardModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730]"
+                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730] cursor-pointer"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={bankAccounts.length === 0}
-                className="px-5 py-2 rounded-md bg-[#0047AB] hover:bg-[#003882] disabled:bg-[#d0d5dd] text-white text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 rounded-md theme-bg-primary text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {editingCard ? '更新する' : '登録する'}
               </button>

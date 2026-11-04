@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, BankAccount, ActiveTab } from './types';
+import { CreditCard, BankAccount, ActiveTab, ThemeAccentColor } from './types';
+import { getThemeColorConfig } from './utils/themeColors';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './components/DashboardView';
@@ -14,6 +15,7 @@ import { DataManagementModal } from './components/DataManagementModal';
 const CARDS_STORAGE_KEY = 'card_payment_manager_cards_v2';
 const ACCOUNTS_STORAGE_KEY = 'card_payment_manager_accounts_v2';
 const THEME_STORAGE_KEY = 'card_payment_manager_theme_v2';
+const ACCENT_COLOR_STORAGE_KEY = 'card_payment_manager_accent_v2';
 const BANK_HOLIDAY_ADJUST_KEY = 'card_payment_manager_adjust_holiday_v2';
 
 export default function App() {
@@ -45,6 +47,34 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // デザインアクセントカラー設定（ブルー、オレンジ、グリーン、パープル、レッド、スレート）
+  const [themeAccentColor, setThemeAccentColor] = useState<ThemeAccentColor>(() => {
+    try {
+      const saved = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) as ThemeAccentColor | null;
+      if (saved && ['blue', 'orange', 'green', 'purple', 'red', 'slate'].includes(saved)) {
+        return saved;
+      }
+    } catch (e) {
+      console.error('Failed to load accent color', e);
+    }
+    return 'blue';
+  });
+
+  const handleSelectThemeAccent = (color: ThemeAccentColor) => {
+    setThemeAccentColor(color);
+    localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
+  };
+
+  // テーマカラーをルートCSS変数に適用
+  useEffect(() => {
+    const config = getThemeColorConfig(themeAccentColor);
+    const root = document.documentElement;
+    root.style.setProperty('--color-primary', config.primaryHex);
+    root.style.setProperty('--color-primary-hover', config.hoverHex);
+    root.style.setProperty('--color-primary-subtle', config.lightBgHex);
+    root.style.setProperty('--color-primary-subtle-dark', config.subtleDarkHex);
+  }, [themeAccentColor]);
 
   // 金融機関休業日（土日祝日）補正設定
   const [adjustForBankHolidays, setAdjustForBankHolidays] = useState<boolean>(() => {
@@ -231,7 +261,7 @@ export default function App() {
       isDark ? 'bg-[#12151a] text-[#f0f2f5]' : 'bg-[#f4f6f8] text-[#1a1f26]'
     }`}>
       {/* デジタル庁風トップアクセントバー */}
-      <div className="h-1 w-full bg-[#0047AB]" />
+      <div className="h-1 w-full theme-bg-primary" />
 
       {/* Header Bar */}
       <Header
@@ -290,7 +320,7 @@ export default function App() {
       }`}>
         <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-1.5 flex-wrap justify-center sm:justify-start">
-            <span className="inline-block w-2 h-2 bg-[#0047AB] rounded-xs" />
+            <span className="inline-block w-2 h-2 theme-bg-primary rounded-xs" />
             <span className={`font-bold whitespace-nowrap ${isDark ? 'text-[#f0f2f5]' : 'text-[#101828]'}`}>
               カード＆口座引き落とし管理
             </span>
@@ -299,9 +329,9 @@ export default function App() {
           <div className="flex items-center gap-3 text-[11px] text-[#667085]">
             <button
               onClick={() => setIsDataModalOpen(true)}
-              className="underline hover:text-[#0047AB] cursor-pointer"
+              className="underline hover:text-[var(--color-primary)] cursor-pointer"
             >
-              バックアップ / 祝日設定
+              設定・バックアップ
             </button>
             <span className="hidden sm:inline">|</span>
             <span className="hidden sm:inline">デジタル庁デザインシステム準拠</span>
@@ -356,6 +386,8 @@ export default function App() {
         adjustForBankHolidays={adjustForBankHolidays}
         onToggleBankHolidayAdjustment={handleToggleBankHolidayAdjustment}
         onRestoreData={handleRestoreData}
+        themeAccentColor={themeAccentColor}
+        onChangeThemeColor={handleSelectThemeAccent}
       />
 
       <DeleteConfirmModal

@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Service Title & Logo (スマホでも絶対に省略されない1行フル表示) */}
           <div className="flex items-center space-x-2.5 min-w-0 flex-1">
-            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-[#0047AB] text-white shrink-0 shadow-xs">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md theme-bg-primary text-white shrink-0 shadow-xs">
               <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onToggleTheme}
               title={isDark ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-md transition-colors border flex items-center gap-1 text-xs ${
+              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-md transition-colors border flex items-center gap-1 text-xs cursor-pointer ${
                 isDark
                   ? 'bg-[#222730] text-amber-300 hover:bg-[#2c333f] border-[#363f4e]'
                   : 'bg-[#f4f6f8] text-[#344054] hover:bg-[#eaecf0] border-[#d0d5dd]'
@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenCalendar}
               title="支払カレンダーを表示"
-              className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all bg-[#0047AB] hover:bg-[#003882] text-white shadow-xs cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all theme-bg-primary text-white shadow-xs cursor-pointer"
             >
               <Calendar className="h-3.5 w-3.5" />
               <span>支払カレンダー</span>
@@ -85,14 +85,14 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSettings}
               title="データ管理・設定"
-              className={`hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all border ${
+              className={`hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all border cursor-pointer ${
                 isDark
                   ? 'bg-[#222730] text-[#cfd5e0] hover:bg-[#2c333f] border-[#363f4e]'
                   : 'bg-white text-[#344054] hover:bg-[#f4f6f8] border-[#d0d5dd]'
               }`}
             >
-              <Settings className="h-3.5 w-3.5" />
-              <span>データ設定</span>
+              <Settings className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+              <span>設定・保存</span>
             </button>
           </div>
         </div>
@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'border-[#0047AB] text-[#0047AB] dark:text-[#5294e2] dark:border-[#5294e2]'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                 : 'border-transparent text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
             }`}
           >
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
             {cardCount > 0 && (
               <span className={`text-[11px] font-mono px-1.5 py-0.2 rounded-xs ${
                 activeTab === 'dashboard'
-                  ? 'bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2]'
+                  ? 'theme-bg-subtle text-[var(--color-primary)] font-bold'
                   : 'bg-[#f0f2f5] dark:bg-[#222730] text-[#667085] dark:text-[#8e98a8]'
               }`}>
                 {cardCount}
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('cards')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'cards'
-                ? 'border-[#0047AB] text-[#0047AB] dark:text-[#5294e2] dark:border-[#5294e2]'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                 : 'border-transparent text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
             }`}
           >
@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
             {cardCount > 0 && (
               <span className={`text-[11px] font-mono px-1.5 py-0.2 rounded-xs ${
                 activeTab === 'cards'
-                  ? 'bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2]'
+                  ? 'theme-bg-subtle text-[var(--color-primary)] font-bold'
                   : 'bg-[#f0f2f5] dark:bg-[#222730] text-[#667085] dark:text-[#8e98a8]'
               }`}>
                 {cardCount}
@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setActiveTab('accounts')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'accounts'
-                ? 'border-[#0047AB] text-[#0047AB] dark:text-[#5294e2] dark:border-[#5294e2]'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                 : 'border-transparent text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
             }`}
           >
@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
             {accountCount > 0 && (
               <span className={`text-[11px] font-mono px-1.5 py-0.2 rounded-xs ${
                 activeTab === 'accounts'
-                  ? 'bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2]'
+                  ? 'theme-bg-subtle text-[var(--color-primary)] font-bold'
                   : 'bg-[#f0f2f5] dark:bg-[#222730] text-[#667085] dark:text-[#8e98a8]'
               }`}>
                 {accountCount}
