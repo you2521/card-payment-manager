@@ -185,10 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {upcomingCardInfo ? (
         <section 
           aria-label="直近の引き落とし予定"
-          className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-4 shadow-xs relative overflow-hidden border-l-4"
-          style={{
-            borderLeftColor: getBrandColorConfig(upcomingCardInfo.card.brandColor, isDark).hex || '#0047AB',
-          }}
+          className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-4 shadow-xs relative overflow-hidden"
         >
           <div className="space-y-2">
             {/* 上段：次回予定ラベル ＆ カウントダウンバッジ */}
@@ -414,10 +411,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 return (
                   <div
                     key={card.id}
-                    className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-4 shadow-xs border-l-4"
-                    style={{
-                      borderLeftColor: brandCfg.hex || '#0047AB',
-                    }}
+                    className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-4 shadow-xs"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
@@ -513,10 +507,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {cardsByAccount.map(({ account, cards: accCards }) => (
             <div
               key={account.id}
-              className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] overflow-hidden shadow-xs border-l-4"
-              style={{
-                borderLeftColor: account.color || '#0047AB',
-              }}
+              className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] overflow-hidden shadow-xs"
             >
               <div className="flex items-center justify-between px-4 py-2.5 bg-[#f4f6f8] dark:bg-[#222730] border-b border-[#d0d5dd] dark:border-[#2e3642]">
                 <div className="flex items-center gap-2">
