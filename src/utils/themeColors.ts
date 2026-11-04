@@ -2,6 +2,7 @@ import { ThemeAccentColor, ThemeColorConfig } from '../types';
 
 export interface ExtendedThemeColorConfig extends ThemeColorConfig {
   subtleDarkHex: string;
+  lightTextHex: string; // ダークモード時に高い視認性を保つ明るいアクセントテキスト色
 }
 
 export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorConfig> = {
@@ -12,6 +13,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#003882',
     lightBgHex: '#eff6ff',
     subtleDarkHex: 'rgba(0, 71, 171, 0.25)',
+    lightTextHex: '#60a5fa', // 明るい青
   },
   orange: {
     id: 'orange',
@@ -20,6 +22,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#c2410c',
     lightBgHex: '#fff7ed',
     subtleDarkHex: 'rgba(234, 88, 12, 0.25)',
+    lightTextHex: '#fb923c', // 明るいオレンジ
   },
   green: {
     id: 'green',
@@ -28,6 +31,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#047857',
     lightBgHex: '#ecfdf5',
     subtleDarkHex: 'rgba(5, 150, 105, 0.25)',
+    lightTextHex: '#34d399', // 明るいグリーン
   },
   purple: {
     id: 'purple',
@@ -36,6 +40,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#6d28d9',
     lightBgHex: '#f5f3ff',
     subtleDarkHex: 'rgba(124, 58, 237, 0.25)',
+    lightTextHex: '#c084fc', // 明るいパープル
   },
   red: {
     id: 'red',
@@ -44,6 +49,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#b91c1c',
     lightBgHex: '#fef2f2',
     subtleDarkHex: 'rgba(220, 38, 38, 0.25)',
+    lightTextHex: '#f87171', // 明るいレッド
   },
   slate: {
     id: 'slate',
@@ -52,6 +58,7 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     hoverHex: '#1e293b',
     lightBgHex: '#f8fafc',
     subtleDarkHex: 'rgba(51, 65, 85, 0.35)',
+    lightTextHex: '#94a3b8', // 明るいスレート
   },
 };
 

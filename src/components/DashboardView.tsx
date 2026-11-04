@@ -223,7 +223,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     ? 'bg-[#d92d20] text-white shadow-xs animate-pulse'
                     : upcomingGroup.isTomorrow
                     ? 'bg-[#b54708] text-white shadow-xs'
-                    : 'theme-bg-subtle text-[var(--color-primary)] border border-[var(--color-primary)]/20 font-mono'
+                    : 'theme-bg-subtle theme-text-accent border border-[var(--color-primary)]/20 font-mono font-extrabold'
                 }`}
               >
                 {upcomingGroup.isToday
@@ -332,18 +332,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {futureScheduleGroups.map((group) => (
               <div
                 key={group.daysLeft}
-                className="p-3 sm:p-3.5 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] shadow-xs hover:border-[var(--color-primary)]/60 transition-all flex items-center justify-between gap-3"
+                className="p-3 sm:p-3.5 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] shadow-xs hover:border-[var(--color-primary)]/70 transition-all flex items-center justify-between gap-3 group"
               >
                 {/* 左側：アイキャッチ角丸タイル（参考画像のサムネイル枠のような明確なビジュアルブロック） */}
                 <div className="flex flex-col items-center justify-center min-w-[62px] sm:min-w-[70px] h-[62px] sm:h-[70px] rounded-lg theme-bg-subtle border border-[var(--color-primary)]/20 text-center shrink-0 p-1">
                   <span className="text-[10px] font-bold text-[#475467] dark:text-[#98a2b3] leading-none">
                     {group.nextDateWithWeekday}
                   </span>
-                  <span className="text-sm sm:text-base font-mono font-extrabold text-[var(--color-primary)] leading-tight mt-1">
+                  <span className="text-sm sm:text-base font-mono font-extrabold theme-text-accent leading-tight mt-1">
                     あと{group.daysLeft}日
                   </span>
                   {group.isAdjusted && (
-                    <span className="text-[8px] text-[#b54708] font-bold leading-none mt-0.5">
+                    <span className="text-[8px] text-[#b54708] dark:text-amber-400 font-bold leading-none mt-0.5">
                       翌営業日
                     </span>
                   )}
@@ -378,7 +378,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                         {/* 口座表示 */}
                         <div className="text-[11px] text-[#475467] dark:text-[#98a2b3] flex items-center gap-1 pl-4 sm:pl-0 shrink-0">
-                          <Landmark className="h-3 w-3 shrink-0" />
+                          <Landmark className="h-3 w-3 shrink-0 text-[var(--color-primary)]" />
                           {acc ? (
                             <span className="font-medium text-[#101828] dark:text-white inline-flex items-center gap-1">
                               <span
@@ -400,7 +400,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onEditCard(group.items[0].card)}
-                  className="p-1 rounded-md text-[#98a2b3] hover:text-[var(--color-primary)] transition-colors shrink-0"
+                  className="p-1.5 rounded-lg border border-[#d0d5dd]/70 dark:border-[#363f4e] bg-[#f4f6f8]/60 dark:bg-[#222730]/60 hover:bg-white dark:hover:bg-[#2c333f] text-[#667085] hover:text-[var(--color-primary)] transition-all shrink-0 cursor-pointer"
                   title="編集"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -474,7 +474,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {nextPaymentInfo ? (
                     <span className="font-mono font-bold text-[#101828] dark:text-white flex items-center gap-1">
                       <span>{nextPaymentInfo.nextDateFormatted}</span>
-                      <span className="text-[10px] text-[var(--color-primary)]">
+                      <span className="text-[10px] theme-text-accent font-bold">
                         ({nextPaymentInfo.isToday ? '本日' : nextPaymentInfo.isTomorrow ? '明日' : `あと${nextPaymentInfo.daysLeft}日`})
                       </span>
                     </span>

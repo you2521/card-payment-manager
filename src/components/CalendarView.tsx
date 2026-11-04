@@ -206,7 +206,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 wd.isSunday
                   ? 'text-[#d92d20]'
                   : wd.isSaturday
-                  ? 'text-[var(--color-primary)]'
+                  ? 'theme-text-accent'
                   : 'text-[#475467] dark:text-[#98a2b3]'
               }
             >
@@ -261,7 +261,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         : isSunday
                         ? 'text-[#d92d20]'
                         : isSaturday
-                        ? 'text-[var(--color-primary)]'
+                        ? 'theme-text-accent'
                         : 'text-[#101828] dark:text-white'
                     }`}
                   >

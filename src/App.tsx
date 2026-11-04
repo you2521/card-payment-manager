@@ -74,6 +74,7 @@ export default function App() {
     root.style.setProperty('--color-primary-hover', config.hoverHex);
     root.style.setProperty('--color-primary-subtle', config.lightBgHex);
     root.style.setProperty('--color-primary-subtle-dark', config.subtleDarkHex);
+    root.style.setProperty('--color-primary-light', config.lightTextHex);
   }, [themeAccentColor]);
 
   // 金融機関休業日（土日祝日）補正設定
