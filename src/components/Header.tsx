@@ -9,8 +9,6 @@ interface HeaderProps {
   accountCount: number;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
-  onOpenCalendar: () => void;
-  onOpenSettings: () => void;
   onOpenAddCard: () => void;
   onOpenAddAccount: () => void;
 }
@@ -22,8 +20,6 @@ export const Header: React.FC<HeaderProps> = ({
   accountCount,
   theme,
   onToggleTheme,
-  onOpenCalendar,
-  onOpenSettings,
 }) => {
   const isDark = theme === 'dark';
 
@@ -70,35 +66,12 @@ export const Header: React.FC<HeaderProps> = ({
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               <span className="hidden sm:inline">{isDark ? 'ライト' : 'ダーク'}</span>
             </button>
-
-            {/* PC向けカレンダーボタン（スマホはボトムナビに常駐） */}
-            <button
-              onClick={onOpenCalendar}
-              title="支払カレンダーを表示"
-              className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all theme-bg-primary text-white shadow-xs cursor-pointer"
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              <span>支払カレンダー</span>
-            </button>
-
-            {/* PC向け設定ボタン（スマホはボトムナビに常駐） */}
-            <button
-              onClick={onOpenSettings}
-              title="データ管理・設定"
-              className={`hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-bold transition-all border cursor-pointer ${
-                isDark
-                  ? 'bg-[#222730] text-[#cfd5e0] hover:bg-[#2c333f] border-[#363f4e]'
-                  : 'bg-white text-[#344054] hover:bg-[#f4f6f8] border-[#d0d5dd]'
-              }`}
-            >
-              <Settings className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-              <span>設定・保存</span>
-            </button>
           </div>
         </div>
 
-        {/* Desktop Navigation Tabs (PCでのみ表示、スマホは下部ボトムナビに移行) */}
+        {/* Desktop Navigation Tabs (PCでのみ表示、5つのタブを網羅) */}
         <nav className="hidden md:flex items-center space-x-6 border-t border-[#d0d5dd]/40 dark:border-[#262c36] -mb-[1px]">
+          {/* 1. 概要 */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
@@ -120,6 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
+          {/* 2. カード管理 */}
           <button
             onClick={() => setActiveTab('cards')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
@@ -141,6 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
+          {/* 3. 引き落とし口座 */}
           <button
             onClick={() => setActiveTab('accounts')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
@@ -160,6 +135,32 @@ export const Header: React.FC<HeaderProps> = ({
                 {accountCount}
               </span>
             )}
+          </button>
+
+          {/* 4. カレンダー */}
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'calendar'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                : 'border-transparent text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+            }`}
+          >
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span>カレンダー</span>
+          </button>
+
+          {/* 5. 設定・保存 */}
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'settings'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                : 'border-transparent text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+            }`}
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            <span>設定・保存</span>
           </button>
         </nav>
       </div>

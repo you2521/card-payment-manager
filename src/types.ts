@@ -21,7 +21,7 @@ export interface CreditCard {
   adjustForBankHolidays?: boolean; // 金融機関休業日（土日祝日）の翌営業日補正（未指定時はtrue）
 }
 
-export type ActiveTab = 'dashboard' | 'cards' | 'accounts';
+export type ActiveTab = 'dashboard' | 'cards' | 'accounts' | 'calendar' | 'settings';
 
 export type ThemeAccentColor = 'blue' | 'orange' | 'green' | 'purple' | 'red' | 'slate';
 

@@ -6,11 +6,11 @@ import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './components/DashboardView';
 import { CardManagementView } from './components/CardManagementView';
 import { AccountManagementView } from './components/AccountManagementView';
+import { CalendarView } from './components/CalendarView';
+import { SettingsView } from './components/SettingsView';
 import { CardModal } from './components/CardModal';
 import { AccountModal } from './components/AccountModal';
-import { CalendarModal } from './components/CalendarModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
-import { DataManagementModal } from './components/DataManagementModal';
 
 const CARDS_STORAGE_KEY = 'card_payment_manager_cards_v2';
 const ACCOUNTS_STORAGE_KEY = 'card_payment_manager_accounts_v2';
@@ -128,15 +128,12 @@ export default function App() {
     localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(creditCards));
   }, [creditCards]);
 
-  // Modal states
+  // Modal states（カード登録・編集、口座登録・編集、削除確認のみモーダルで管理）
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
 
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
-
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
 
   // Delete modal state
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
@@ -271,8 +268,6 @@ export default function App() {
         accountCount={bankAccounts.length}
         theme={theme}
         onToggleTheme={handleToggleTheme}
-        onOpenCalendar={() => setIsCalendarModalOpen(true)}
-        onOpenSettings={() => setIsDataModalOpen(true)}
         onOpenAddCard={handleOpenAddCard}
         onOpenAddAccount={handleOpenAddAccount}
       />
@@ -313,6 +308,27 @@ export default function App() {
             onDeleteAccount={handleRequestDeleteAccount}
           />
         )}
+
+        {activeTab === 'calendar' && (
+          <CalendarView
+            cards={creditCards}
+            accounts={bankAccounts}
+            adjustForBankHolidays={adjustForBankHolidays}
+            onEditCard={handleOpenEditCard}
+          />
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsView
+            cards={creditCards}
+            accounts={bankAccounts}
+            adjustForBankHolidays={adjustForBankHolidays}
+            onToggleBankHolidayAdjustment={handleToggleBankHolidayAdjustment}
+            onRestoreData={handleRestoreData}
+            themeAccentColor={themeAccentColor}
+            onChangeThemeColor={handleSelectThemeAccent}
+          />
+        )}
       </main>
 
       {/* デジタル庁デザインシステム準拠のクリーンなフッター (改行防止) */}
@@ -329,7 +345,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[#667085]">
             <button
-              onClick={() => setIsDataModalOpen(true)}
+              onClick={() => setActiveTab('settings')}
               className="underline hover:text-[var(--color-primary)] cursor-pointer"
             >
               設定・バックアップ
@@ -340,17 +356,15 @@ export default function App() {
         </div>
       </footer>
 
-      {/* スマホ用ボトムナビゲーション (Edge-to-Edge & Safe Area対応) */}
+      {/* スマホ用ボトムナビゲーション (5つのタブすべてシームレスにページ遷移) */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         cardCount={creditCards.length}
         accountCount={bankAccounts.length}
-        onOpenCalendar={() => setIsCalendarModalOpen(true)}
-        onOpenSettings={() => setIsDataModalOpen(true)}
       />
 
-      {/* Modals */}
+      {/* Modals（データ登録・編集、削除確認） */}
       <CardModal
         isOpen={isCardModalOpen}
         onClose={() => setIsCardModalOpen(false)}
@@ -370,25 +384,6 @@ export default function App() {
         onSave={handleSaveAccount}
         editingAccount={editingAccount}
         onDeleteAccount={handleRequestDeleteAccount}
-      />
-
-      <CalendarModal
-        isOpen={isCalendarModalOpen}
-        onClose={() => setIsCalendarModalOpen(false)}
-        cards={creditCards}
-        accounts={bankAccounts}
-      />
-
-      <DataManagementModal
-        isOpen={isDataModalOpen}
-        onClose={() => setIsDataModalOpen(false)}
-        cards={creditCards}
-        accounts={bankAccounts}
-        adjustForBankHolidays={adjustForBankHolidays}
-        onToggleBankHolidayAdjustment={handleToggleBankHolidayAdjustment}
-        onRestoreData={handleRestoreData}
-        themeAccentColor={themeAccentColor}
-        onChangeThemeColor={handleSelectThemeAccent}
       />
 
       <DeleteConfirmModal

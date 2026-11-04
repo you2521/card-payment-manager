@@ -7,8 +7,6 @@ interface BottomNavProps {
   setActiveTab: (tab: ActiveTab) => void;
   cardCount: number;
   accountCount: number;
-  onOpenCalendar: () => void;
-  onOpenSettings: () => void;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -16,8 +14,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   setActiveTab,
   cardCount,
   accountCount,
-  onOpenCalendar,
-  onOpenSettings,
 }) => {
   return (
     <nav
@@ -100,21 +96,35 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* 4. カレンダー */}
         <button
           type="button"
-          onClick={onOpenCalendar}
-          className="flex flex-col items-center justify-center h-full py-1 text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5] transition-colors cursor-pointer"
+          onClick={() => setActiveTab('calendar')}
+          className={`relative flex flex-col items-center justify-center h-full py-1 transition-colors cursor-pointer ${
+            activeTab === 'calendar'
+              ? 'text-[var(--color-primary)] font-bold'
+              : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+          }`}
         >
           <Calendar className="h-5 w-5" />
           <span className="text-[10px] mt-0.5">カレンダー</span>
+          {activeTab === 'calendar' && (
+            <span className="absolute top-0 left-3 right-3 h-0.5 theme-bg-primary rounded-full" />
+          )}
         </button>
 
-        {/* 5. データ・設定 */}
+        {/* 5. 設定・保存 */}
         <button
           type="button"
-          onClick={onOpenSettings}
-          className="flex flex-col items-center justify-center h-full py-1 text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5] transition-colors cursor-pointer"
+          onClick={() => setActiveTab('settings')}
+          className={`relative flex flex-col items-center justify-center h-full py-1 transition-colors cursor-pointer ${
+            activeTab === 'settings'
+              ? 'text-[var(--color-primary)] font-bold'
+              : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+          }`}
         >
           <Settings className="h-5 w-5" />
           <span className="text-[10px] mt-0.5">設定・保存</span>
+          {activeTab === 'settings' && (
+            <span className="absolute top-0 left-3 right-3 h-0.5 theme-bg-primary rounded-full" />
+          )}
         </button>
       </div>
     </nav>
