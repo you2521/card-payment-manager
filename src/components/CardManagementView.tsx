@@ -121,12 +121,13 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: brandCfg.hex || '#0047AB' }}
+                        />
                         <h3 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
                           {card.name}
                         </h3>
-                        <span className="text-[10px] text-[#475467] dark:text-[#98a2b3] bg-[#f4f6f8] dark:bg-[#222730] px-1.5 py-0.5 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
-                          {brandCfg.label}
-                        </span>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 text-xs text-[#475467] dark:text-[#98a2b3]">

@@ -100,7 +100,7 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                     </div>
 
                     <span className="text-[11px] font-mono px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0]">
-                      {linkedCards.length} Cards
+                      {linkedCards.length} 枚
                     </span>
                   </div>
 
