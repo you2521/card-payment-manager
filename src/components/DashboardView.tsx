@@ -1,25 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { CreditCard, BankAccount, ActiveTab } from '../types';
 import {
-  CreditCard,
-  BankAccount
-} from '../types';
-import {
-  sortCardsByPaymentDay,
   formatPaymentDay,
   getDaysUntilNextPayment,
-  getBankAccount
+  getBankAccount,
 } from '../utils/paymentUtils';
 import { getBrandColorConfig } from '../utils/colors';
 import {
   Calendar,
-  Pencil,
-  Trash2,
   Landmark,
   Sparkles,
   Plus,
   ArrowRight,
-  AlertCircle,
-  CreditCard as CardIcon
+  Clock,
+  Layers,
+  ChevronRight,
+  CreditCard as CardIcon,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -31,6 +28,7 @@ interface DashboardViewProps {
   onEditAccount: (account: BankAccount) => void;
   onOpenAddCard: () => void;
   onOpenAddAccount: () => void;
+  onNavigateToTab?: (tab: ActiveTab) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -38,116 +36,100 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts,
   adjustForBankHolidays = true,
   onEditCard,
-  onDeleteCard,
   onEditAccount,
   onOpenAddCard,
   onOpenAddAccount,
+  onNavigateToTab,
 }) => {
-  const [viewGroupMode, setViewGroupMode] = useState<'date_sort' | 'bank_group'>('date_sort');
-  const [showDetails, setShowDetails] = useState(false);
+  const isDark = typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false;
 
-  // Cards sorted by payment day (4日 -> 10日 -> 26日 -> 月末)
-  const sortedCards = useMemo(() => {
-    return sortCardsByPaymentDay(cards);
-  }, [cards]);
+  // 1. 全カードの次回引き落とし予定を計算し、直近（日数順）で安定ソート
+  const cardsWithSchedule = useMemo(() => {
+    return cards
+      .map((card) => ({
+        card,
+        info: getDaysUntilNextPayment(card, new Date(), adjustForBankHolidays),
+      }))
+      .sort((a, b) => {
+        if (a.info.daysLeft !== b.info.daysLeft) {
+          return a.info.daysLeft - b.info.daysLeft;
+        }
+        return a.card.name.localeCompare(b.card.name, 'ja');
+      });
+  }, [cards, adjustForBankHolidays]);
 
-  // Group cards by payment date for compact mode
-  const groupedCardsByDate = useMemo(() => {
-    const map = new Map<string, { label: string; dayValue: number; cards: CreditCard[] }>();
-
-    sortedCards.forEach((card) => {
-      let key = '';
-      let label = '';
-      let dayValue = 99;
-
-      if (card.paymentDayType === 'end_of_month') {
-        key = 'end_of_month';
-        label = '毎月末日';
-        dayValue = 32;
-      } else {
-        const day = card.paymentDayValue || 1;
-        key = `day_${day}`;
-        label = `毎月 ${day}日`;
-        dayValue = day;
-      }
-
-      if (!map.has(key)) {
-        map.set(key, { label, dayValue, cards: [] });
-      }
-      map.get(key)!.cards.push(card);
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.dayValue - b.dayValue);
-  }, [sortedCards]);
-
-  // Calculate next upcoming payment cards among all cards (同日に複数ある場合は全件抽出)
+  // 2. 直近（最も早い支払日）の引き落としグループ（同日複数カードを網羅）
   const upcomingGroup = useMemo(() => {
-    if (cards.length === 0) return null;
-    const cardsWithDays = cards.map((c) => ({
-      card: c,
-      info: getDaysUntilNextPayment(c, new Date(), adjustForBankHolidays),
-    }));
-
-    // 最小日数を計算
-    const minDaysLeft = Math.min(...cardsWithDays.map((c) => c.info.daysLeft));
-    const matching = cardsWithDays.filter((c) => c.info.daysLeft === minDaysLeft);
-
-    // カード名で安定ソート
-    matching.sort((a, b) => a.card.name.localeCompare(b.card.name, 'ja'));
-
-    const first = matching[0];
-    const isAnyAdjusted = matching.some((m) => m.info.isAdjusted);
-    const adjustmentReason = matching.find((m) => m.info.isAdjusted)?.info.adjustmentReason;
+    if (cardsWithSchedule.length === 0) return null;
+    const minDaysLeft = cardsWithSchedule[0].info.daysLeft;
+    const items = cardsWithSchedule.filter((c) => c.info.daysLeft === minDaysLeft);
+    const first = items[0];
 
     return {
       daysLeft: minDaysLeft,
       nextDateWithWeekday: first.info.nextDateWithWeekday,
       isToday: first.info.isToday,
       isTomorrow: first.info.isTomorrow,
-      isAdjusted: isAnyAdjusted,
-      adjustmentReason,
-      items: matching,
+      isAdjusted: items.some((m) => m.info.isAdjusted),
+      adjustmentReason: items.find((m) => m.info.isAdjusted)?.info.adjustmentReason,
+      items,
     };
-  }, [cards, adjustForBankHolidays]);
+  }, [cardsWithSchedule]);
 
-  // Group cards by bank account
-  const cardsByAccount = useMemo(() => {
-    const map = new Map<string, CreditCard[]>();
-    accounts.forEach((acc) => map.set(acc.id, []));
+  // 3. 次回以降（直近グループの次）の引き落としスケジュールを時系列（タイムライン）で集約
+  const futureScheduleGroups = useMemo(() => {
+    if (!upcomingGroup) return [];
+    const futureCards = cardsWithSchedule.filter((c) => c.info.daysLeft > upcomingGroup.daysLeft);
 
-    const unassignedCards: CreditCard[] = [];
+    const map = new Map<
+      number,
+      {
+        daysLeft: number;
+        nextDateWithWeekday: string;
+        isAdjusted: boolean;
+        adjustmentReason?: string;
+        items: typeof futureCards;
+      }
+    >();
 
-    cards.forEach((card) => {
-      if (card.bankAccountId && map.has(card.bankAccountId)) {
-        map.get(card.bankAccountId)!.push(card);
-      } else {
-        unassignedCards.push(card);
+    futureCards.forEach((item) => {
+      if (!map.has(item.info.daysLeft)) {
+        map.set(item.info.daysLeft, {
+          daysLeft: item.info.daysLeft,
+          nextDateWithWeekday: item.info.nextDateWithWeekday,
+          isAdjusted: item.info.isAdjusted,
+          adjustmentReason: item.info.adjustmentReason,
+          items: [],
+        });
+      }
+      const g = map.get(item.info.daysLeft)!;
+      g.items.push(item);
+      if (item.info.isAdjusted) {
+        g.isAdjusted = true;
+        g.adjustmentReason = item.info.adjustmentReason;
       }
     });
 
-    const result = accounts.map((acc) => ({
-      account: acc,
-      cards: sortCardsByPaymentDay(map.get(acc.id) || []),
-    }));
+    return Array.from(map.values()).sort((a, b) => a.daysLeft - b.daysLeft);
+  }, [cardsWithSchedule, upcomingGroup]);
 
-    if (unassignedCards.length > 0) {
-      result.push({
-        account: {
-          id: '__unassigned__',
-          name: '口座未設定・未登録',
-          color: '#d92d20',
-          note: '引き落とし口座が未設定または削除されたカードです',
-        },
-        cards: sortCardsByPaymentDay(unassignedCards),
-      });
-    }
+  // 4. 口座ごとの状況サマリー（紐づくカード数・直近の引き落とし予定）
+  const accountSummaries = useMemo(() => {
+    return accounts.map((account) => {
+      const linkedCards = cards.filter((c) => c.bankAccountId === account.id);
+      const linkedWithSchedule = cardsWithSchedule.filter((c) => c.card.bankAccountId === account.id);
+      const nextPayment = linkedWithSchedule[0]; // 最も直近のもの
 
-    return result;
-  }, [accounts, cards]);
+      return {
+        account,
+        cardCount: linkedCards.length,
+        nextPaymentInfo: nextPayment ? nextPayment.info : null,
+        nextCardName: nextPayment ? nextPayment.card.name : null,
+      };
+    });
+  }, [accounts, cards, cardsWithSchedule]);
 
-  const isDark = typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false;
-
-  // データが0件の場合のEmpty State（初めて使う方向けのステップ案内）
+  // データが0件の場合のEmpty State
   if (cards.length === 0 && accounts.length === 0) {
     return (
       <div className="space-y-6 py-4 animate-fadeIn">
@@ -200,11 +182,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-5 animate-fadeIn">
-      {/* 1. 直近の引き落とし情報（DADS基準のコールアウトパネル - 同日複数表示対応） */}
+      {/* ========================================================
+          1. 直近の引き落とし予定（Hero Attention Banner）
+          ======================================================== */}
       {upcomingGroup ? (
-        <section 
-          aria-label="直近の引き落とし予定"
-          className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-4 shadow-xs relative overflow-hidden"
+        <section
+          aria-label="次回引き落とし予定"
+          className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-5 shadow-xs relative overflow-hidden"
         >
           <div className="space-y-3">
             {/* 上段：次回予定ラベル ＆ カウントダウンバッジ */}
@@ -213,7 +197,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider theme-bg-subtle text-[var(--color-primary)] px-2 py-0.5 rounded-xs">
                   次回引き落とし予定
                 </span>
-                <span className="text-xs sm:text-sm font-mono font-bold text-[#101828] dark:text-white">
+                <span className="text-sm sm:text-base font-mono font-bold text-[#101828] dark:text-white">
                   {upcomingGroup.nextDateWithWeekday}
                 </span>
                 {upcomingGroup.isAdjusted && (
@@ -223,15 +207,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 )}
               </div>
 
-              {/* カウントダウン表示（スマホでも収まりの良いスマートバッジ） */}
+              {/* カウントダウン表示 */}
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className={`text-xs px-2.5 py-0.5 rounded-sm font-bold ${
-                  upcomingGroup.isToday
-                    ? 'bg-[#d92d20] text-white shadow-xs'
-                    : upcomingGroup.isTomorrow
-                    ? 'bg-[#b54708] text-white shadow-xs'
-                    : 'bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[var(--color-primary)]'
-                }`}>
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-sm font-bold ${
+                    upcomingGroup.isToday
+                      ? 'bg-[#d92d20] text-white shadow-xs'
+                      : upcomingGroup.isTomorrow
+                      ? 'bg-[#b54708] text-white shadow-xs'
+                      : 'bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[var(--color-primary)]'
+                  }`}
+                >
                   {upcomingGroup.isToday
                     ? '本日引き落とし'
                     : upcomingGroup.isTomorrow
@@ -239,25 +225,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     : `あと ${upcomingGroup.daysLeft} 日`}
                 </span>
                 {upcomingGroup.items.length > 1 && (
-                  <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#98a2b3]">
+                  <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#cfd5e0]">
                     {upcomingGroup.items.length}件
                   </span>
                 )}
               </div>
             </div>
 
-            {/* 中段・下段：カード一覧（1件または複数件） */}
+            {/* 中段・下段：引き落としカード一覧（同日全件表示） */}
             {upcomingGroup.items.length === 1 ? (
               /* 1件の場合 */
               (() => {
-                const { card, info } = upcomingGroup.items[0];
+                const { card } = upcomingGroup.items[0];
                 const acc = getBankAccount(accounts, card.bankAccountId);
                 const brandCfg = getBrandColorConfig(card.brandColor, isDark);
                 return (
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 pt-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
                         style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
                       />
                       <button
@@ -282,7 +268,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           onClick={() => onEditAccount(acc)}
                           className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1"
                         >
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.color || 'var(--color-primary)' }} />
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: acc.color || 'var(--color-primary)' }}
+                          />
                           <span>{acc.name}</span>
                         </button>
                       ) : (
@@ -293,7 +282,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 );
               })()
             ) : (
-              /* 複数件ある場合：同日引き落としカードをリスト表示 */
+              /* 複数件ある場合：同日引き落としカードを端正なリスト表示 */
               <div className="divide-y divide-[#d0d5dd]/50 dark:divide-[#2e3642] pt-1">
                 {upcomingGroup.items.map(({ card, info }, idx) => {
                   const acc = getBankAccount(accounts, card.bankAccountId);
@@ -301,11 +290,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div
                       key={card.id}
-                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 py-2 ${idx === 0 ? 'pt-0.5' : ''}`}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 py-2 ${
+                        idx === 0 ? 'pt-0.5' : ''
+                      }`}
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
                           style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
                         />
                         <button
@@ -335,7 +326,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             onClick={() => onEditAccount(acc)}
                             className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1 max-w-[140px] sm:max-w-none truncate"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: acc.color || 'var(--color-primary)' }} />
+                            <span
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={{ backgroundColor: acc.color || 'var(--color-primary)' }}
+                            />
                             <span className="truncate">{acc.name}</span>
                           </button>
                         ) : (
@@ -349,339 +343,218 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </div>
         </section>
-      ) : (
-        <div className="bg-white dark:bg-[#1a1f26] border border-[#d0d5dd] dark:border-[#2e3642] rounded-lg p-4 flex items-center justify-between">
-          <p className="text-xs sm:text-sm text-[#475467] dark:text-[#98a2b3]">クレジットカードが未登録です。</p>
-          <button
-            onClick={onOpenAddCard}
-            className="px-3 py-1.5 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-          >
-            カードを追加
-          </button>
-        </div>
-      )}
+      ) : null}
 
-      {/* 2. 表示切り替えコントロールバー */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#1a1f26] p-2.5 sm:p-3 rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] shadow-xs">
-        {/* グループ切り替えボタン */}
-        <div className="flex items-center rounded-md bg-[#f4f6f8] dark:bg-[#222730] p-1 border border-[#d0d5dd] dark:border-[#363f4e] text-xs">
-          <button
-            onClick={() => setViewGroupMode('date_sort')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm font-bold transition-all cursor-pointer flex-1 sm:flex-none ${
-              viewGroupMode === 'date_sort'
-                ? 'bg-white dark:bg-[#1a1f26] text-[var(--color-primary)] shadow-xs'
-                : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-white'
-            }`}
-          >
-            <Calendar className="h-3.5 w-3.5" />
-            <span>支払日順</span>
-          </button>
-          <button
-            onClick={() => setViewGroupMode('bank_group')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm font-bold transition-all cursor-pointer flex-1 sm:flex-none ${
-              viewGroupMode === 'bank_group'
-                ? 'bg-white dark:bg-[#1a1f26] text-[var(--color-primary)] shadow-xs'
-                : 'text-[#667085] dark:text-[#8e98a8] hover:text-[#101828] dark:hover:text-white'
-            }`}
-          >
-            <Landmark className="h-3.5 w-3.5" />
-            <span>口座別</span>
-          </button>
-        </div>
-
-        {/* 右側アクション：詳細トグル & 新規追加 */}
-        <div className="flex items-center justify-between sm:justify-end gap-2">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={showDetails}
-            onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold border border-[#d0d5dd] dark:border-[#363f4e] bg-[#f4f6f8] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] hover:bg-[#eaecf0] dark:hover:bg-[#2c333f] cursor-pointer"
-          >
-            <span>詳細表示</span>
-            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors relative flex items-center ${showDetails ? 'theme-bg-primary' : 'bg-[#d0d5dd] dark:bg-[#475467]'}`}>
-              <div className={`w-3 h-3 rounded-full bg-white shadow-xs transition-transform duration-200 ${showDetails ? 'translate-x-4' : 'translate-x-0'}`} />
+      {/* ========================================================
+          2. 口座別引き落としサマリー（Bank Accounts Status）
+          ======================================================== */}
+      {accounts.length > 0 && (
+        <section aria-label="口座別サマリー" className="space-y-2">
+          <div className="flex items-center justify-between px-0.5">
+            <div className="flex items-center gap-1.5">
+              <Landmark className="h-4 w-4 text-[var(--color-primary)]" />
+              <h2 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white">
+                引き落とし口座の状況
+              </h2>
+              <span className="text-[11px] font-mono font-bold text-[#667085] dark:text-[#8e98a8]">
+                ({accounts.length}口座)
+              </span>
             </div>
-          </button>
 
-          <button
-            onClick={onOpenAddCard}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>カード追加</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. メイン一覧 */}
-      {viewGroupMode === 'date_sort' ? (
-        /* 支払日順 */
-        <div className="space-y-3">
-          {sortedCards.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-[#d0d5dd] dark:border-[#363f4e] bg-[#f4f6f8] dark:bg-[#1a1f26] p-8 text-center space-y-2">
-              <p className="text-sm font-bold text-[#101828] dark:text-white">登録されたカードがありません</p>
+            {onNavigateToTab && (
               <button
-                onClick={onOpenAddCard}
-                className="px-4 py-2 rounded-md theme-bg-primary text-white text-xs font-bold cursor-pointer"
+                type="button"
+                onClick={() => onNavigateToTab('accounts')}
+                className="text-[11px] font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
               >
-                最初のクレジットカードを登録する
+                <span>口座一覧</span>
+                <ChevronRight className="h-3 w-3" />
               </button>
-            </div>
-          ) : !showDetails ? (
-            /* コンパクト一覧（支払日グループ別） */
-            <div className="space-y-3">
-              {groupedCardsByDate.map((group) => (
-                <div
-                  key={group.label}
-                  className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] overflow-hidden shadow-xs"
-                >
-                  <div className="px-4 py-2 bg-[#f4f6f8] dark:bg-[#222730] border-b border-[#d0d5dd] dark:border-[#2e3642] flex items-center justify-between">
-                    <span className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-[var(--color-primary)]" />
-                      {group.label} 引き落とし
-                    </span>
-                    <span className="text-xs font-bold text-[#475467] dark:text-[#98a2b3]">
-                      {group.cards.length} 件
-                    </span>
-                  </div>
+            )}
+          </div>
 
-                  <div className="divide-y divide-[#d0d5dd]/50 dark:divide-[#2e3642]">
-                    {group.cards.map((card) => {
-                      const linkedAccount = getBankAccount(accounts, card.bankAccountId);
-                      const brandCfg = getBrandColorConfig(card.brandColor, isDark);
-
-                      return (
-                        <div
-                          key={card.id}
-                          className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-[#f9fafb] dark:hover:bg-[#222730]/50 transition-colors gap-2"
-                        >
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <span
-                              className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => onEditCard(card)}
-                              className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white truncate hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
-                            >
-                              {card.name}
-                            </button>
-                          </div>
-
-                          <div className="shrink-0 text-right min-w-0">
-                            {linkedAccount ? (
-                              <button
-                                type="button"
-                                onClick={() => onEditAccount(linkedAccount)}
-                                className="inline-flex items-center gap-1 text-xs text-[#475467] dark:text-[#98a2b3] hover:text-[var(--color-primary)] dark:hover:text-white hover:underline cursor-pointer font-medium max-w-[150px] sm:max-w-none truncate"
-                                title={linkedAccount.name}
-                              >
-                                <span
-                                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: linkedAccount.color || 'var(--color-primary)' }}
-                                />
-                                <span className="truncate">{linkedAccount.name}</span>
-                              </button>
-                            ) : (
-                              <span className="text-[10px] text-[#d92d20] font-bold">
-                                口座未設定
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* 詳細一覧 */
-            <div className="grid grid-cols-1 gap-2.5">
-              {sortedCards.map((card) => {
-                const linkedAccount = getBankAccount(accounts, card.bankAccountId);
-                const paymentInfo = getDaysUntilNextPayment(card, new Date(), adjustForBankHolidays);
-                const brandCfg = getBrandColorConfig(card.brandColor, isDark);
-
-                return (
-                  <div
-                    key={card.id}
-                    className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-4 shadow-xs"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex flex-col items-center justify-center shrink-0 w-12 h-12 rounded-md bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] font-bold">
-                          <span className="text-[8px] text-[#667085] dark:text-[#8e98a8]">毎月</span>
-                          <span className="text-sm sm:text-base font-mono font-bold text-[#101828] dark:text-white">
-                            {formatPaymentDay(card)}
-                          </span>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() => onEditCard(card)}
-                              className="text-sm sm:text-base font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
-                            >
-                              {card.name}
-                            </button>
-                            {card.closingDay && (
-                              <span className="text-[10px] text-[#475467] dark:text-[#98a2b3] bg-[#f4f6f8] dark:bg-[#222730] px-1.5 py-0.5 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
-                                {card.closingDay}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2 text-xs text-[#475467] dark:text-[#98a2b3]">
-                            <span>口座:</span>
-                            {linkedAccount ? (
-                              <button
-                                type="button"
-                                onClick={() => onEditAccount(linkedAccount)}
-                                className="font-bold text-[#101828] dark:text-white hover:underline cursor-pointer inline-flex items-center gap-1"
-                              >
-                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: linkedAccount.color || 'var(--color-primary)' }} />
-                                <span>{linkedAccount.name}</span>
-                              </button>
-                            ) : (
-                              <span className="text-[#d92d20] font-bold">口座未設定</span>
-                            )}
-                          </div>
-
-                          {card.memo && (
-                            <p className="text-[11px] text-[#667085] dark:text-[#8e98a8]">{card.memo}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#d0d5dd]/40 dark:border-[#2e3642]">
-                        <div className="text-right">
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-xs font-mono inline-block ${
-                            paymentInfo.isToday
-                              ? 'bg-[#d92d20] text-white'
-                              : paymentInfo.daysLeft <= 5
-                              ? 'bg-[#b54708]/15 text-[#b54708] border border-[#b54708]/30'
-                              : 'bg-[#f4f6f8] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] border border-[#d0d5dd] dark:border-[#363f4e]'
-                          }`}>
-                            {paymentInfo.isToday ? '本日' : paymentInfo.isTomorrow ? '明日' : `あと ${paymentInfo.daysLeft} 日`}
-                          </span>
-                          <div className="text-[10px] text-[#667085] dark:text-[#8e98a8] mt-0.5 font-mono">
-                            {paymentInfo.nextDateWithWeekday}
-                            {paymentInfo.isAdjusted && <span className="text-[#b54708] ml-1">※翌営業日</span>}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => onEditCard(card)}
-                            className="p-1.5 rounded-md hover:bg-[#f4f6f8] dark:hover:bg-[#222730] text-[#667085] hover:text-[var(--color-primary)] cursor-pointer"
-                            title="編集"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => onDeleteCard(card.id)}
-                            className="p-1.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-[#667085] hover:text-[#d92d20] cursor-pointer"
-                            title="削除"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {accountSummaries.map(({ account, cardCount, nextPaymentInfo, nextCardName }) => (
+              <div
+                key={account.id}
+                onClick={() => onEditAccount(account)}
+                className="p-3 rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] shadow-2xs hover:border-[var(--color-primary)] transition-all cursor-pointer flex flex-col justify-between gap-2"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+                      style={{ backgroundColor: account.color || 'var(--color-primary)' }}
+                    />
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white truncate">
+                        {account.name}
+                      </h3>
+                      <p className="text-[10px] text-[#667085] dark:text-[#8e98a8]">
+                        {account.accountType || '普通預金'}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
-        /* 口座別表示 */
-        <div className="space-y-3">
-          {cardsByAccount.map(({ account, cards: accCards }) => (
-            <div
-              key={account.id}
-              className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] overflow-hidden shadow-xs"
-            >
-              <div className="flex items-center justify-between px-4 py-2.5 bg-[#f4f6f8] dark:bg-[#222730] border-b border-[#d0d5dd] dark:border-[#2e3642]">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: account.color || 'var(--color-primary)' }} />
-                  {account.id === '__unassigned__' ? (
-                    <span className="text-xs sm:text-sm font-bold text-[#d92d20] flex items-center gap-1">
-                      <AlertCircle className="h-3.5 w-3.5" />
-                      <span>{account.name}</span>
+
+                  <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0] shrink-0">
+                    {cardCount}枚
+                  </span>
+                </div>
+
+                <div className="pt-1.5 border-t border-[#d0d5dd]/40 dark:border-[#2e3642] flex items-center justify-between text-[11px] text-[#475467] dark:text-[#98a2b3]">
+                  <span>直近予定:</span>
+                  {nextPaymentInfo ? (
+                    <span className="font-mono font-bold text-[#101828] dark:text-white flex items-center gap-1">
+                      <span>{nextPaymentInfo.nextDateFormatted}</span>
+                      <span className="text-[10px] text-[var(--color-primary)]">
+                        ({nextPaymentInfo.isToday ? '本日' : nextPaymentInfo.isTomorrow ? '明日' : `あと${nextPaymentInfo.daysLeft}日`})
+                      </span>
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => onEditAccount(account)}
-                      className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
-                    >
-                      {account.name}
-                    </button>
+                    <span className="text-[#98a2b3] italic text-[10px]">紐づくカードなし</span>
                   )}
                 </div>
-                <span className="text-xs font-bold text-[#475467] dark:text-[#98a2b3]">
-                  {accCards.length} 枚
-                </span>
               </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-              <div className="p-3 space-y-2">
-                {accCards.length === 0 ? (
-                  <p className="text-xs text-[#667085] dark:text-[#8e98a8] py-2 text-center">
-                    この口座に紐づいているカードはありません。
-                  </p>
-                ) : (
-                  accCards.map((card) => (
-                    <div
-                      key={card.id}
-                      className="flex items-center justify-between p-2.5 rounded-md bg-[#fcfcfd] dark:bg-[#20252e] border border-[#d0d5dd]/60 dark:border-[#2e3642]"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-xs bg-white dark:bg-[#1a1f26] border border-[#d0d5dd] dark:border-[#363f4e]">
-                          {formatPaymentDay(card)}
+      {/* ========================================================
+          3. 今後の引き落としタイムライン（時系列スケジュール）
+          ======================================================== */}
+      <section aria-label="今後の引き落とし予定" className="space-y-2">
+        <div className="flex items-center justify-between px-0.5">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-[var(--color-primary)]" />
+            <h2 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white">
+              今後の引き落としスケジュール
+            </h2>
+          </div>
+
+          {onNavigateToTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('cards')}
+              className="text-[11px] font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+            >
+              <span>カード一覧・追加</span>
+              <ChevronRight className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
+        {futureScheduleGroups.length === 0 ? (
+          <div className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-4 text-center space-y-1 shadow-xs">
+            <p className="text-xs font-bold text-[#101828] dark:text-white flex items-center justify-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>直近の引き落とし予定はすべて次回にまとまっています</span>
+            </p>
+            <p className="text-[11px] text-[#667085] dark:text-[#8e98a8]">
+              次回引き落としが完了すると、翌月のサイクルがここにタイムライン表示されます。
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] overflow-hidden shadow-xs divide-y divide-[#d0d5dd]/60 dark:divide-[#2e3642]">
+            {futureScheduleGroups.map((group) => (
+              <div
+                key={group.daysLeft}
+                className="p-3 sm:px-4 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-[#f9fafb] dark:hover:bg-[#20252e] transition-colors"
+              >
+                {/* 日付・カウントダウン（左側） */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-mono font-bold text-[#101828] dark:text-white">
+                    <Calendar className="h-4 w-4 text-[var(--color-primary)]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs sm:text-sm font-mono font-bold text-[#101828] dark:text-white">
+                        {group.nextDateWithWeekday}
+                      </span>
+                      {group.isAdjusted && (
+                        <span className="text-[9px] text-[#b54708] bg-[#b54708]/10 px-1 py-0.2 rounded-xs border border-[#b54708]/20 font-medium">
+                          翌営業日
                         </span>
-                        <div>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--color-primary)] font-bold">
+                      あと {group.daysLeft} 日
+                    </span>
+                  </div>
+                </div>
+
+                {/* 該当カード一覧（右側） */}
+                <div className="flex-1 min-w-0 sm:pl-4 sm:border-l border-[#d0d5dd]/40 dark:border-[#2e3642] space-y-1">
+                  {group.items.map(({ card }) => {
+                    const acc = getBankAccount(accounts, card.bankAccountId);
+                    const brandCfg = getBrandColorConfig(card.brandColor, isDark);
+                    return (
+                      <div
+                        key={card.id}
+                        className="flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0 shadow-2xs"
+                            style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
+                          />
                           <button
                             type="button"
                             onClick={() => onEditCard(card)}
-                            className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left"
+                            className="font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] hover:underline cursor-pointer truncate text-left"
                           >
                             {card.name}
                           </button>
-                          {card.closingDay && (
-                            <p className="text-[10px] text-[#667085] dark:text-[#8e98a8]">{card.closingDay}</p>
+                          <span className="text-[10px] text-[#667085] dark:text-[#8e98a8]">
+                            ({formatPaymentDay(card)})
+                          </span>
+                        </div>
+
+                        <div className="shrink-0 text-[11px] text-[#667085] dark:text-[#8e98a8]">
+                          {acc ? (
+                            <span className="inline-flex items-center gap-1 font-medium">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: acc.color || 'var(--color-primary)' }}
+                              />
+                              <span className="truncate max-w-[120px] sm:max-w-none">{acc.name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-[#d92d20] font-bold">口座未設定</span>
                           )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => onEditCard(card)}
-                          className="p-1 rounded-md text-[#667085] hover:text-[var(--color-primary)] cursor-pointer"
-                          title="編集"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => onDeleteCard(card.id)}
-                          className="p-1 rounded-md text-[#667085] hover:text-[#d92d20] cursor-pointer"
-                          title="削除"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ========================================================
+          4. フッター付近のクイックアクション
+          ======================================================== */}
+      <div className="pt-1 flex items-center justify-between gap-2">
+        <button
+          onClick={onOpenAddCard}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md theme-bg-primary text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>カードを登録する</span>
+        </button>
+
+        {onNavigateToTab && (
+          <button
+            onClick={() => onNavigateToTab('cards')}
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#475467] dark:text-[#98a2b3] hover:text-[var(--color-primary)] cursor-pointer"
+          >
+            <span>全カード一覧を見る</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

@@ -289,6 +289,7 @@ export default function App() {
             onEditAccount={handleOpenEditAccount}
             onOpenAddCard={handleOpenAddCard}
             onOpenAddAccount={handleOpenAddAccount}
+            onNavigateToTab={setActiveTab}
           />
         )}
 

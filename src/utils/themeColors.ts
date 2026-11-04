@@ -7,7 +7,7 @@ export interface ExtendedThemeColorConfig extends ThemeColorConfig {
 export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorConfig> = {
   blue: {
     id: 'blue',
-    label: '公式ブルー',
+    label: 'ブルー',
     primaryHex: '#0047AB',
     hoverHex: '#003882',
     lightBgHex: '#eff6ff',

@@ -162,7 +162,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
                 </span>
               </div>
               <span className="text-[11px] font-bold text-[var(--color-primary)]">
-                {THEME_COLOR_PRESETS[themeAccentColor]?.label || '公式ブルー'}
+                {THEME_COLOR_PRESETS[themeAccentColor]?.label || 'ブルー'}
               </span>
             </div>
 
