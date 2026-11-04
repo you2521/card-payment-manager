@@ -34,9 +34,11 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Service Title & Logo (スマホでも絶対に省略されない1行フル表示) */}
           <div className="flex items-center space-x-2.5 min-w-0 flex-1">
-            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md theme-bg-primary text-white shrink-0 shadow-xs">
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
+            <img
+              src="./icons/icon-192.png"
+              alt="アプリロゴ"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg shrink-0 shadow-xs object-cover"
+            />
             <div className="min-w-0">
               <h1 className={`text-sm sm:text-base font-bold tracking-tight whitespace-nowrap ${
                 isDark ? 'text-white' : 'text-[#101828]'
