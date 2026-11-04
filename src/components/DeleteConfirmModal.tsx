@@ -21,33 +21,35 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-sm rounded-2xl border border-[#3c4043] bg-[#202124] shadow-2xl p-4 sm:p-6 text-[#e8eaed] animate-scaleIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+      <div className="relative w-full max-w-sm rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] shadow-xl p-5 text-[#101828] dark:text-[#f0f2f5] animate-scaleIn">
         <button
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 p-1 rounded-full text-[#9aa0a6] hover:text-white hover:bg-[#303134] transition-colors"
+          className="absolute top-3.5 right-3.5 p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f]"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="flex flex-col items-center text-center">
-          <div className="p-3 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-3 sm:mb-4">
-            <AlertTriangle className="h-6 w-6" />
+        <div className="space-y-3">
+          <div className="flex items-center gap-2.5 text-[#d92d20]">
+            <div className="p-2 rounded-md bg-[#d92d20]/10 border border-[#d92d20]/20">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">{title}</h3>
           </div>
 
-          <h3 className="text-sm sm:text-base font-bold text-white mb-1.5">{title}</h3>
-          <p className="text-xs text-[#9aa0a6] mb-3.5 leading-relaxed">{message}</p>
+          <p className="text-xs text-[#475467] dark:text-[#98a2b3] leading-relaxed">{message}</p>
 
           {warningDetails && (
-            <div className="w-full p-2.5 sm:p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs text-left mb-4">
+            <div className="p-2.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/30 text-[#b54708] text-xs leading-relaxed">
               ⚠️ {warningDetails}
             </div>
           )}
 
-          <div className="flex items-center gap-2.5 w-full">
+          <div className="flex items-center gap-2 pt-2">
             <button
               onClick={onClose}
-              className="flex-1 py-2 sm:py-2.5 rounded-full border border-[#3c4043] bg-[#303134] text-[#e8eaed] text-xs font-semibold hover:bg-[#3c4043] transition-colors"
+              className="flex-1 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730] transition-colors"
             >
               キャンセル
             </button>
@@ -56,7 +58,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                 onConfirm();
                 onClose();
               }}
-              className="flex-1 py-2 sm:py-2.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-sm"
+              className="flex-1 py-2 rounded-md bg-[#d92d20] hover:bg-[#b42318] text-white text-xs font-bold transition-all shadow-xs"
             >
               削除する
             </button>

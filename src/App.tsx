@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, BankAccount, ActiveTab } from './types';
-import { INITIAL_BANK_ACCOUNTS, INITIAL_CREDIT_CARDS } from './data/initialData';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { CardManagementView } from './components/CardManagementView';
@@ -10,22 +9,26 @@ import { AccountModal } from './components/AccountModal';
 import { CalendarModal } from './components/CalendarModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 
-const CARDS_STORAGE_KEY = 'card_payment_manager_cards_v1';
-const ACCOUNTS_STORAGE_KEY = 'card_payment_manager_accounts_v1';
-const THEME_STORAGE_KEY = 'card_payment_manager_theme_v1';
+const CARDS_STORAGE_KEY = 'card_payment_manager_cards_v2';
+const ACCOUNTS_STORAGE_KEY = 'card_payment_manager_accounts_v2';
+const THEME_STORAGE_KEY = 'card_payment_manager_theme_v2';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
-  // Theme State ('dark' | 'light')
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+  // Theme State ('light' | 'dark') - デジタル庁デザイン基準ではライトモードが公式標準、ダークモードも高コントラストで対応
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       if (saved === 'light' || saved === 'dark') return saved;
+      // OSの設定を尊重
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
     } catch (e) {
       console.error('Failed to load theme', e);
     }
-    return 'dark';
+    return 'light';
   });
 
   const handleToggleTheme = () => {
@@ -41,7 +44,7 @@ export default function App() {
     }
   }, [theme]);
 
-  // Load state from localStorage or initialize with dummy data
+  // Load state from localStorage - 初期データは完全「0件」（まっさら）でスタート
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() => {
     try {
       const saved = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
@@ -52,7 +55,7 @@ export default function App() {
     } catch (e) {
       console.error('Failed to load accounts from localStorage', e);
     }
-    return INITIAL_BANK_ACCOUNTS;
+    return [];
   });
 
   const [creditCards, setCreditCards] = useState<CreditCard[]>(() => {
@@ -65,7 +68,7 @@ export default function App() {
     } catch (e) {
       console.error('Failed to load cards from localStorage', e);
     }
-    return INITIAL_CREDIT_CARDS;
+    return [];
   });
 
   // Persist to localStorage on state changes
@@ -89,7 +92,7 @@ export default function App() {
   // Delete modal state
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
     isOpen: boolean;
-    type: 'card' | 'account' | 'reset';
+    type: 'card' | 'account';
     id?: string;
     title: string;
     message: string;
@@ -114,12 +117,10 @@ export default function App() {
 
   const handleSaveCard = (cardData: Omit<CreditCard, 'id'>, cardId?: string) => {
     if (cardId) {
-      // Update
       setCreditCards((prev) =>
         prev.map((c) => (c.id === cardId ? { ...cardData, id: cardId } : c))
       );
     } else {
-      // Create
       const newCard: CreditCard = {
         ...cardData,
         id: `card-${Date.now()}`,
@@ -136,8 +137,8 @@ export default function App() {
       isOpen: true,
       type: 'card',
       id: cardId,
-      title: 'クレジットカードの削除',
-      message: `「${card.name}」を削除してもよろしいですか？`,
+      title: 'クレジットカードの削除確認',
+      message: `「${card.name}」を削除してもよろしいですか？この操作は取り消せません。`,
     });
   };
 
@@ -154,12 +155,10 @@ export default function App() {
 
   const handleSaveAccount = (accountData: Omit<BankAccount, 'id'>, accountId?: string) => {
     if (accountId) {
-      // Update
       setBankAccounts((prev) =>
         prev.map((a) => (a.id === accountId ? { ...accountData, id: accountId } : a))
       );
     } else {
-      // Create
       const newAccount: BankAccount = {
         ...accountData,
         id: `acc-${Date.now()}`,
@@ -178,15 +177,15 @@ export default function App() {
     if (linkedCards.length > 0) {
       warningDetails = `この口座は現在 ${linkedCards.length} 枚のカード（${linkedCards
         .map((c) => c.name)
-        .join('、')}）の引き落とし口座に指定されています。削除するとカード側の口座指定が解除されます。`;
+        .join('、')}）の引き落とし口座に設定されています。削除するとカード側の口座設定が未設定になります。`;
     }
 
     setDeleteConfirmState({
       isOpen: true,
       type: 'account',
       id: accountId,
-      title: '銀行口座の削除',
-      message: `「${account.name}」を削除しますか？`,
+      title: '引き落とし口座の削除確認',
+      message: `「${account.name}」を削除してもよろしいですか？`,
       warningDetails,
     });
   };
@@ -197,18 +196,18 @@ export default function App() {
       setCreditCards((prev) => prev.filter((c) => c.id !== id));
     } else if (type === 'account' && id) {
       setBankAccounts((prev) => prev.filter((a) => a.id !== id));
-    } else if (type === 'reset') {
-      setBankAccounts(INITIAL_BANK_ACCOUNTS);
-      setCreditCards(INITIAL_CREDIT_CARDS);
     }
   };
 
   const isDark = theme === 'dark';
 
   return (
-    <div className={`min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white flex flex-col transition-colors ${
-      isDark ? 'bg-[#171717] text-[#e8eaed]' : 'bg-[#f8f9fa] text-[#1f1f1f]'
+    <div className={`min-h-screen font-sans antialiased flex flex-col transition-colors ${
+      isDark ? 'bg-[#12151a] text-[#f0f2f5]' : 'bg-[#f4f6f8] text-[#1a1f26]'
     }`}>
+      {/* デジタル庁風トップアクセントバー */}
+      <div className="h-1 w-full bg-[#0047AB]" />
+
       {/* Header Bar */}
       <Header
         activeTab={activeTab}
@@ -223,7 +222,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="mx-auto max-w-7xl px-2.5 py-4 sm:px-6 sm:py-6 lg:px-8 flex-1 w-full space-y-4 sm:space-y-6">
+      <main className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6 flex-1 w-full space-y-5">
         {activeTab === 'dashboard' && (
           <DashboardView
             cards={creditCards}
@@ -243,6 +242,7 @@ export default function App() {
             onOpenAddCard={handleOpenAddCard}
             onEditCard={handleOpenEditCard}
             onDeleteCard={handleRequestDeleteCard}
+            onOpenAddAccount={handleOpenAddAccount}
           />
         )}
 
@@ -257,28 +257,20 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className={`mt-12 border-t py-6 text-center text-xs transition-colors ${
-        isDark ? 'border-[#3c4043] bg-[#202124] text-[#9aa0a6]' : 'border-[#dadce0] bg-white text-[#5f6368]'
+      {/* デジタル庁デザインシステム準拠のクリーンなフッター */}
+      <footer className={`mt-12 border-t py-6 text-xs transition-colors ${
+        isDark ? 'border-[#262c36] bg-[#161a20] text-[#8e98a8]' : 'border-[#d0d5dd] bg-white text-[#475467]'
       }`}>
-        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className={`font-medium ${isDark ? 'text-[#e8eaed]' : 'text-[#202124]'}`}>カード＆口座引き落とし管理</span>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setDeleteConfirmState({
-                  isOpen: true,
-                  type: 'reset',
-                  title: 'サンプルデータの復元',
-                  message: '登録データを初期サンプルデータにリセットしますか？（現在のデータは上書きされます）',
-                });
-              }}
-              className="text-[11px] underline hover:text-blue-500 transition-colors cursor-pointer"
-            >
-              初期サンプルを復元
-            </button>
-            <span>Google Flat Design Theme ({isDark ? 'Dark Mode' : 'Light Mode'})</span>
+        <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 bg-[#0047AB] rounded-xs" />
+            <span className={`font-bold ${isDark ? 'text-[#f0f2f5]' : 'text-[#101828]'}`}>
+              カード＆口座引き落とし管理
+            </span>
+            <span className="text-[11px] text-[#667085]">（データはお使いの端末にのみ保存されます）</span>
+          </div>
+          <div className="text-[11px] text-[#667085]">
+            デジタル庁デザインシステム準拠 UI
           </div>
         </div>
       </footer>
