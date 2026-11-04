@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="50%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#e2e8f0" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#2563eb" stop-opacity="0" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+    <filter id="cardShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background Base (Safe area for adaptive icons) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Subtle Glow Effect -->
+  <circle cx="160" cy="140" r="180" fill="url(#glowGrad)" />
+
+  <!-- Main Card Graphic with Drop Shadow -->
+  <g filter="url(#cardShadow)">
+    <!-- Credit Card Body -->
+    <rect x="76" y="146" width="360" height="220" rx="24" fill="url(#cardGrad)" />
+    
+    <!-- Magnetic Stripe / Card Top Accent -->
+    <rect x="76" y="190" width="360" height="42" fill="#1e293b" />
+    
+    <!-- Chip (EMV Chip) -->
+    <rect x="116" y="254" width="48" height="38" rx="8" fill="url(#chipGrad)" />
+    <line x1="116" y1="273" x2="164" y2="273" stroke="#92400e" stroke-width="2" />
+    <line x1="140" y1="254" x2="140" y2="292" stroke="#92400e" stroke-width="2" />
+    
+    <!-- Embossed Card Elements / Number Lines -->
+    <rect x="180" y="260" width="160" height="10" rx="5" fill="#64748b" opacity="0.7" />
+    <rect x="180" y="278" width="100" height="8" rx="4" fill="#94a3b8" opacity="0.6" />
+
+    <!-- Calendar Date Badge Floating Indicator -->
+    <g transform="translate(320, 270)">
+      <circle cx="46" cy="46" r="42" fill="#ea580c" />
+      <!-- Calendar Icon inside Badge -->
+      <path d="M30 36 h32 M30 46 h32 M38 28 v-6 M54 28 v-6 M26 30 h40 a4 4 0 0 1 4 4 v34 a4 4 0 0 1 -4 4 h-40 a4 4 0 0 1 -4 -4 v-34 a4 4 0 0 1 4 -4 z" 
+            fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="58" cy="60" r="3.5" fill="#ffffff" />
+    </g>
+  </g>
+</svg>

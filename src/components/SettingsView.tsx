@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Download,
   Upload,
@@ -9,6 +9,11 @@ import {
   Palette,
   HardDrive,
   Check,
+  Smartphone,
+  Share2,
+  MoreVertical,
+  PlusSquare,
+  Sparkles,
 } from 'lucide-react';
 import { CreditCard, BankAccount, ThemeAccentColor } from '../types';
 import { THEME_COLOR_PRESETS } from '../utils/themeColors';
@@ -37,6 +42,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     type: 'idle' | 'success' | 'error';
     text?: string;
   }>({ type: 'idle' });
+
+  // PWA インストール関連の状態
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // すでにスタンドアロンアプリとして起動しているか判定
+    const isStandaloneMode =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(isStandaloneMode);
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setStatusMessage({
+        type: 'success',
+        text: 'ホーム画面にアプリを追加しました！',
+      });
+      setDeferredPrompt(null);
+    }
+  };
 
   // JSONエクスポート（ダウンロード）
   const handleExport = () => {
@@ -128,7 +169,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             設定 ＆ データ保存
           </h2>
           <span className="text-xs font-mono font-bold text-[#475467] dark:text-[#98a2b3] bg-[#f4f6f8] dark:bg-[#222730] px-2 py-0.5 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
-            ローカル保存
+            PWA対応
           </span>
         </div>
       </div>
@@ -159,6 +200,80 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
       )}
+
+      {/* ★ PWA / ホーム画面に追加（アプリ化）専用セクション */}
+      <div className="rounded-xl border border-[var(--color-primary)]/40 dark:border-[var(--color-primary)]/30 bg-gradient-to-br from-white via-white to-[var(--color-primary-subtle)] dark:from-[#1a1f26] dark:via-[#1a1f26] dark:to-[var(--color-primary-subtle-dark)] p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-[#d0d5dd] dark:border-[#2e3642]">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4 text-[var(--color-primary)]" />
+            <h3 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white">
+              ホーム画面に追加してアプリとして使う
+            </h3>
+          </div>
+          {isStandalone ? (
+            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+              <Check className="h-3 w-3" />
+              アプリモード稼働中
+            </span>
+          ) : (
+            <span className="text-[11px] font-bold theme-text-accent flex items-center gap-1">
+              <Sparkles className="h-3 w-3" />
+              全画面起動対応
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-[#475467] dark:text-[#98a2b3] leading-relaxed">
+          スマホのホーム画面に追加すると、URLバーが消えて<strong>本物のアプリのように全画面で軽快に起動</strong>します。オフライン（地下鉄や機内）でもそのまま確認可能です。
+        </p>
+
+        {/* Android Chrome で利用可能な「ワンタップ追加」ボタン */}
+        {deferredPrompt && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg theme-bg-primary text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer hover:opacity-90"
+          >
+            <Smartphone className="h-4 w-4" />
+            <span>今すぐホーム画面にアプリを追加</span>
+          </button>
+        )}
+
+        {/* 手動追加のステップ案内（iPhone / Android 両対応） */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          {/* iPhone / iPad (Safari) */}
+          <div className="p-3 rounded-lg border border-[#d0d5dd]/70 dark:border-[#363f4e] bg-white/80 dark:bg-[#222730]/80 space-y-1.5 text-xs">
+            <div className="font-bold text-[#101828] dark:text-white flex items-center gap-1.5">
+              <span>🍎 iPhone / iPad（Safari）</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-1 text-[11px] text-[#475467] dark:text-[#98a2b3] leading-relaxed">
+              <li>
+                画面下の「<Share2 className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>共有</strong>」ボタンをタップ
+              </li>
+              <li>
+                メニューから「<PlusSquare className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>ホーム画面に追加</strong>」を選択
+              </li>
+              <li>右上の「追加」を押すとアイコンが並びます</li>
+            </ol>
+          </div>
+
+          {/* Android (Chrome) */}
+          <div className="p-3 rounded-lg border border-[#d0d5dd]/70 dark:border-[#363f4e] bg-white/80 dark:bg-[#222730]/80 space-y-1.5 text-xs">
+            <div className="font-bold text-[#101828] dark:text-white flex items-center gap-1.5">
+              <span>🤖 Android（Chrome）</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-1 text-[11px] text-[#475467] dark:text-[#98a2b3] leading-relaxed">
+              <li>
+                右上の「<MoreVertical className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>メニュー</strong>」をタップ
+              </li>
+              <li>
+                「<strong>アプリをインストール</strong>」または「<strong>ホーム画面に追加</strong>」を選択
+              </li>
+              <li>確認画面で「インストール」を押すと完了です</li>
+            </ol>
+          </div>
+        </div>
+      </div>
 
       {/* 設定カードグリッド */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
