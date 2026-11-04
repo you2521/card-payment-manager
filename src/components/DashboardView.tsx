@@ -25,6 +25,7 @@ import {
 interface DashboardViewProps {
   cards: CreditCard[];
   accounts: BankAccount[];
+  adjustForBankHolidays?: boolean;
   onEditCard: (card: CreditCard) => void;
   onDeleteCard: (cardId: string) => void;
   onEditAccount: (account: BankAccount) => void;
@@ -35,6 +36,7 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   cards,
   accounts,
+  adjustForBankHolidays = true,
   onEditCard,
   onDeleteCard,
   onEditAccount,
@@ -83,11 +85,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (cards.length === 0) return null;
     const cardsWithDays = cards.map((c) => ({
       card: c,
-      info: getDaysUntilNextPayment(c),
+      info: getDaysUntilNextPayment(c, new Date(), adjustForBankHolidays),
     }));
     cardsWithDays.sort((a, b) => a.info.daysLeft - b.info.daysLeft);
     return cardsWithDays[0];
-  }, [cards]);
+  }, [cards, adjustForBankHolidays]);
 
   // Group cards by bank account
   const cardsByAccount = useMemo(() => {
@@ -195,9 +197,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0047AB]/10 text-[#0047AB] dark:bg-[#5294e2]/20 dark:text-[#5294e2] px-2 py-0.5 rounded-xs">
                   次回引き落とし予定
                 </span>
-                <span className="text-xs font-mono font-bold text-[#475467] dark:text-[#98a2b3]">
-                  {upcomingCardInfo.info.nextDateFormatted}
+                <span className="text-xs font-mono font-bold text-[#101828] dark:text-white">
+                  {upcomingCardInfo.info.nextDateWithWeekday}
                 </span>
+                {upcomingCardInfo.info.isAdjusted && (
+                  <span className="text-[10px] text-[#b54708] bg-[#b54708]/10 px-1.5 py-0.2 rounded-xs border border-[#b54708]/20 font-medium">
+                    ※{upcomingCardInfo.info.adjustmentReason}のため翌営業日
+                  </span>
+                )}
               </div>
 
               {/* カウントダウン表示（スマホでも収まりの良いスマートバッジ） */}
@@ -401,7 +408,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="grid grid-cols-1 gap-2.5">
               {sortedCards.map((card) => {
                 const linkedAccount = getBankAccount(accounts, card.bankAccountId);
-                const paymentInfo = getDaysUntilNextPayment(card);
+                const paymentInfo = getDaysUntilNextPayment(card, new Date(), adjustForBankHolidays);
                 const brandCfg = getBrandColorConfig(card.brandColor, isDark);
 
                 return (
@@ -460,15 +467,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
 
                       <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#d0d5dd]/40 dark:border-[#2e3642]">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-xs font-mono ${
-                          paymentInfo.isToday
-                            ? 'bg-[#d92d20] text-white'
-                            : paymentInfo.daysLeft <= 5
-                            ? 'bg-[#b54708]/15 text-[#b54708] border border-[#b54708]/30'
-                            : 'bg-[#f4f6f8] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] border border-[#d0d5dd] dark:border-[#363f4e]'
-                        }`}>
-                          {paymentInfo.isToday ? '本日' : paymentInfo.isTomorrow ? '明日' : `あと ${paymentInfo.daysLeft} 日`}
-                        </span>
+                        <div className="text-right">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-xs font-mono inline-block ${
+                            paymentInfo.isToday
+                              ? 'bg-[#d92d20] text-white'
+                              : paymentInfo.daysLeft <= 5
+                              ? 'bg-[#b54708]/15 text-[#b54708] border border-[#b54708]/30'
+                              : 'bg-[#f4f6f8] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] border border-[#d0d5dd] dark:border-[#363f4e]'
+                          }`}>
+                            {paymentInfo.isToday ? '本日' : paymentInfo.isTomorrow ? '明日' : `あと ${paymentInfo.daysLeft} 日`}
+                          </span>
+                          <div className="text-[10px] text-[#667085] dark:text-[#8e98a8] mt-0.5 font-mono">
+                            {paymentInfo.nextDateWithWeekday}
+                            {paymentInfo.isAdjusted && <span className="text-[#b54708] ml-1">※翌営業日</span>}
+                          </div>
+                        </div>
 
                         <div className="flex items-center gap-1">
                           <button

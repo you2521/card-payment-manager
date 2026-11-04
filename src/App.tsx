@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, BankAccount, ActiveTab } from './types';
 import { Header } from './components/Header';
+import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './components/DashboardView';
 import { CardManagementView } from './components/CardManagementView';
 import { AccountManagementView } from './components/AccountManagementView';
@@ -8,20 +9,21 @@ import { CardModal } from './components/CardModal';
 import { AccountModal } from './components/AccountModal';
 import { CalendarModal } from './components/CalendarModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
+import { DataManagementModal } from './components/DataManagementModal';
 
 const CARDS_STORAGE_KEY = 'card_payment_manager_cards_v2';
 const ACCOUNTS_STORAGE_KEY = 'card_payment_manager_accounts_v2';
 const THEME_STORAGE_KEY = 'card_payment_manager_theme_v2';
+const BANK_HOLIDAY_ADJUST_KEY = 'card_payment_manager_adjust_holiday_v2';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
-  // Theme State ('light' | 'dark') - デジタル庁デザイン基準ではライトモードが公式標準、ダークモードも高コントラストで対応
+  // Theme State ('light' | 'dark')
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       if (saved === 'light' || saved === 'dark') return saved;
-      // OSの設定を尊重
       if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark';
       }
@@ -43,6 +45,22 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // 金融機関休業日（土日祝日）補正設定
+  const [adjustForBankHolidays, setAdjustForBankHolidays] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(BANK_HOLIDAY_ADJUST_KEY);
+      if (saved !== null) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return true; // デフォルトで有効
+  });
+
+  const handleToggleBankHolidayAdjustment = (enabled: boolean) => {
+    setAdjustForBankHolidays(enabled);
+    localStorage.setItem(BANK_HOLIDAY_ADJUST_KEY, JSON.stringify(enabled));
+  };
 
   // Load state from localStorage - 初期データは完全「0件」（まっさら）でスタート
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() => {
@@ -88,6 +106,7 @@ export default function App() {
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
 
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
 
   // Delete modal state
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
@@ -199,6 +218,12 @@ export default function App() {
     }
   };
 
+  // 復元処理（インポート）
+  const handleRestoreData = (newCards: CreditCard[], newAccounts: BankAccount[]) => {
+    setCreditCards(newCards);
+    setBankAccounts(newAccounts);
+  };
+
   const isDark = theme === 'dark';
 
   return (
@@ -217,16 +242,18 @@ export default function App() {
         theme={theme}
         onToggleTheme={handleToggleTheme}
         onOpenCalendar={() => setIsCalendarModalOpen(true)}
+        onOpenSettings={() => setIsDataModalOpen(true)}
         onOpenAddCard={handleOpenAddCard}
         onOpenAddAccount={handleOpenAddAccount}
       />
 
-      {/* Main Container */}
-      <main className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6 flex-1 w-full space-y-5">
+      {/* Main Container (スマホではボトムナビの高さ分 pb-20 を確保) */}
+      <main className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-6 flex-1 w-full space-y-4 pb-20 md:pb-6">
         {activeTab === 'dashboard' && (
           <DashboardView
             cards={creditCards}
             accounts={bankAccounts}
+            adjustForBankHolidays={adjustForBankHolidays}
             onEditCard={handleOpenEditCard}
             onDeleteCard={handleRequestDeleteCard}
             onEditAccount={handleOpenEditAccount}
@@ -257,23 +284,40 @@ export default function App() {
         )}
       </main>
 
-      {/* デジタル庁デザインシステム準拠のクリーンなフッター */}
-      <footer className={`mt-12 border-t py-6 text-xs transition-colors ${
+      {/* デジタル庁デザインシステム準拠のクリーンなフッター (改行防止) */}
+      <footer className={`border-t py-4 md:py-6 text-xs transition-colors mb-14 md:mb-0 ${
         isDark ? 'border-[#262c36] bg-[#161a20] text-[#8e98a8]' : 'border-[#d0d5dd] bg-white text-[#475467]'
       }`}>
-        <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <div className="flex items-center gap-1.5 flex-wrap justify-center sm:justify-start">
             <span className="inline-block w-2 h-2 bg-[#0047AB] rounded-xs" />
-            <span className={`font-bold ${isDark ? 'text-[#f0f2f5]' : 'text-[#101828]'}`}>
+            <span className={`font-bold whitespace-nowrap ${isDark ? 'text-[#f0f2f5]' : 'text-[#101828]'}`}>
               カード＆口座引き落とし管理
             </span>
-            <span className="text-[11px] text-[#667085]">（データはお使いの端末にのみ保存されます）</span>
+            <span className="text-[10px] text-[#667085] whitespace-nowrap">（完全端末内保存・通信なし）</span>
           </div>
-          <div className="text-[11px] text-[#667085]">
-            デジタル庁デザインシステム準拠 UI
+          <div className="flex items-center gap-3 text-[11px] text-[#667085]">
+            <button
+              onClick={() => setIsDataModalOpen(true)}
+              className="underline hover:text-[#0047AB] cursor-pointer"
+            >
+              バックアップ / 祝日設定
+            </button>
+            <span className="hidden sm:inline">|</span>
+            <span className="hidden sm:inline">デジタル庁デザインシステム準拠</span>
           </div>
         </div>
       </footer>
+
+      {/* スマホ用ボトムナビゲーション (Edge-to-Edge & Safe Area対応) */}
+      <BottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        cardCount={creditCards.length}
+        accountCount={bankAccounts.length}
+        onOpenCalendar={() => setIsCalendarModalOpen(true)}
+        onOpenSettings={() => setIsDataModalOpen(true)}
+      />
 
       {/* Modals */}
       <CardModal
@@ -302,6 +346,16 @@ export default function App() {
         onClose={() => setIsCalendarModalOpen(false)}
         cards={creditCards}
         accounts={bankAccounts}
+      />
+
+      <DataManagementModal
+        isOpen={isDataModalOpen}
+        onClose={() => setIsDataModalOpen(false)}
+        cards={creditCards}
+        accounts={bankAccounts}
+        adjustForBankHolidays={adjustForBankHolidays}
+        onToggleBankHolidayAdjustment={handleToggleBankHolidayAdjustment}
+        onRestoreData={handleRestoreData}
       />
 
       <DeleteConfirmModal

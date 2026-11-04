@@ -1,4 +1,7 @@
 import { CreditCard, BankAccount } from '../types';
+import { adjustToNextBankBusinessDay, getJapaneseHolidayName } from './bankHolidayUtils';
+
+export const JAPANESE_WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
 /**
  * Get numeric sort rank for a card based on its payment date.
@@ -38,11 +41,11 @@ export function formatPaymentDay(card: CreditCard, prefixEveryMonth: boolean = f
 }
 
 /**
- * Calculate the next actual date (YYYY-MM-DD) for a card relative to reference date (default: today)
+ * Calculate the raw scheduled date in current or next month without holiday adjustment
  */
-export function getNextPaymentDate(card: CreditCard, referenceDate: Date = new Date()): Date {
+export function getRawScheduledDate(card: CreditCard, referenceDate: Date = new Date()): Date {
   const year = referenceDate.getFullYear();
-  const month = referenceDate.getMonth(); // 0-indexed
+  const month = referenceDate.getMonth();
   const today = referenceDate.getDate();
 
   let targetYear = year;
@@ -50,7 +53,6 @@ export function getNextPaymentDate(card: CreditCard, referenceDate: Date = new D
   let targetDay = 1;
 
   if (card.paymentDayType === 'end_of_month') {
-    // Last day of current month
     const lastDayCurrentMonth = new Date(year, month + 1, 0).getDate();
     if (today <= lastDayCurrentMonth) {
       targetDay = lastDayCurrentMonth;
@@ -61,11 +63,9 @@ export function getNextPaymentDate(card: CreditCard, referenceDate: Date = new D
   } else {
     const cardDay = card.paymentDayValue ?? 1;
     if (today <= cardDay) {
-      // Payment day in current month hasn't passed
       const maxDayCurrentMonth = new Date(year, month + 1, 0).getDate();
       targetDay = Math.min(cardDay, maxDayCurrentMonth);
     } else {
-      // Payment day passed, move to next month
       targetMonth = month + 1;
       const maxDayNextMonth = new Date(year, targetMonth + 1, 0).getDate();
       targetDay = Math.min(cardDay, maxDayNextMonth);
@@ -76,17 +76,80 @@ export function getNextPaymentDate(card: CreditCard, referenceDate: Date = new D
 }
 
 /**
- * Get days remaining until next payment
+ * Calculate the next actual payment date (accounting for bank business days if enabled)
  */
-export function getDaysUntilNextPayment(card: CreditCard, referenceDate: Date = new Date()): {
+export function getNextPaymentDate(
+  card: CreditCard,
+  referenceDate: Date = new Date(),
+  adjustForHolidays: boolean = true
+): {
+  date: Date;
+  isAdjusted: boolean;
+  originalDate: Date;
+  adjustmentReason?: string;
+} {
+  const rawDate = getRawScheduledDate(card, referenceDate);
+
+  if (!adjustForHolidays) {
+    return {
+      date: rawDate,
+      isAdjusted: false,
+      originalDate: rawDate,
+    };
+  }
+
+  const { adjustedDate, isAdjusted, originalDate, reason } = adjustToNextBankBusinessDay(rawDate);
+
+  // If today is past the adjusted date (which can happen if raw date was today or yesterday and shifted),
+  // recalculate starting from tomorrow or move to next month cycle
+  const startToday = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+  const startAdjusted = new Date(adjustedDate.getFullYear(), adjustedDate.getMonth(), adjustedDate.getDate());
+
+  if (startAdjusted.getTime() < startToday.getTime()) {
+    // Already passed, calculate for next cycle
+    const nextRef = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 1);
+    const nextRaw = getRawScheduledDate(card, nextRef);
+    const nextAdjusted = adjustToNextBankBusinessDay(nextRaw);
+    return {
+      date: nextAdjusted.adjustedDate,
+      isAdjusted: nextAdjusted.isAdjusted,
+      originalDate: nextAdjusted.originalDate,
+      adjustmentReason: nextAdjusted.reason,
+    };
+  }
+
+  return {
+    date: adjustedDate,
+    isAdjusted,
+    originalDate,
+    adjustmentReason: reason,
+  };
+}
+
+/**
+ * Get days remaining until next payment with weekday and holiday shift details
+ */
+export function getDaysUntilNextPayment(
+  card: CreditCard,
+  referenceDate: Date = new Date(),
+  adjustForHolidays: boolean = true
+): {
   daysLeft: number;
   nextDateFormatted: string;
+  nextDateWithWeekday: string;
   isToday: boolean;
   isTomorrow: boolean;
+  isAdjusted: boolean;
+  originalDateFormatted: string;
+  adjustmentReason?: string;
+  weekdayStr: string;
 } {
-  const nextDate = getNextPaymentDate(card, referenceDate);
-  
-  // Set times to midnight for clean day calculation
+  const { date: nextDate, isAdjusted, originalDate, adjustmentReason } = getNextPaymentDate(
+    card,
+    referenceDate,
+    adjustForHolidays
+  );
+
   const startToday = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
   const startNext = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
 
@@ -95,13 +158,25 @@ export function getDaysUntilNextPayment(card: CreditCard, referenceDate: Date = 
 
   const monthStr = nextDate.getMonth() + 1;
   const dateStr = nextDate.getDate();
+  const weekday = JAPANESE_WEEKDAYS[nextDate.getDay()];
   const nextDateFormatted = `${monthStr}/${dateStr}`;
+  const nextDateWithWeekday = `${monthStr}/${dateStr}(${weekday})`;
+
+  const origMonth = originalDate.getMonth() + 1;
+  const origDay = originalDate.getDate();
+  const origWeekday = JAPANESE_WEEKDAYS[originalDate.getDay()];
+  const originalDateFormatted = `${origMonth}/${origDay}(${origWeekday})`;
 
   return {
     daysLeft,
     nextDateFormatted,
+    nextDateWithWeekday,
     isToday: daysLeft === 0,
-    isTomorrow: daysLeft === 1
+    isTomorrow: daysLeft === 1,
+    isAdjusted,
+    originalDateFormatted,
+    adjustmentReason,
+    weekdayStr: weekday,
   };
 }
 
