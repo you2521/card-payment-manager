@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, CreditCard as CardIcon, Landmark, Calendar, FileText, Check, Sparkles, Trash2 } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { X, CreditCard as CardIcon, Landmark, Calendar, FileText, Check, Info, Trash2 } from 'lucide-react';
 import { CreditCard, BankAccount, PaymentDayType } from '../types';
 import { suggestCardColor } from '../utils/colorSuggester';
-import { BRAND_COLORS } from '../utils/colors';
+import { BRAND_COLORS, getBrandColorConfig } from '../utils/colors';
 
 interface CardModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface CardModalProps {
   bankAccounts: BankAccount[];
   onOpenAddAccountModal?: () => void;
   onDeleteCard?: (cardId: string) => void;
+  isDark?: boolean;
 }
 
 const COLOR_OPTIONS = [
@@ -37,6 +38,7 @@ export const CardModal: React.FC<CardModalProps> = ({
   bankAccounts,
   onOpenAddAccountModal,
   onDeleteCard,
+  isDark = false,
 }) => {
   const [name, setName] = useState('');
   const [paymentDayType, setPaymentDayType] = useState<PaymentDayType>('day');
@@ -157,9 +159,9 @@ export const CardModal: React.FC<CardModalProps> = ({
               className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             {suggestion && (
-              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#b54708]">
+              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#93370d] dark:text-amber-300">
                 <span className="flex items-center gap-1 font-medium">
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Info strokeWidth={1.75} className="h-3.5 w-3.5" />
                   <span>おすすめ色: <strong>{suggestion.label}</strong> ({suggestion.reason})</span>
                 </span>
                 {brandColor !== suggestion.colorId && (
@@ -193,7 +195,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 className={`p-2.5 rounded-md border text-xs font-bold transition-all text-center cursor-pointer ${
                   paymentDayType === 'day'
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
-                    : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#475467] dark:text-[#8e98a8]'
+                    : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#344054] dark:text-[#cfd5e0]'
                 }`}
               >
                 毎月指定日（1〜31日）
@@ -204,7 +206,7 @@ export const CardModal: React.FC<CardModalProps> = ({
                 className={`p-2.5 rounded-md border text-xs font-bold transition-all text-center cursor-pointer ${
                   paymentDayType === 'end_of_month'
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
-                    : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#475467] dark:text-[#8e98a8]'
+                    : 'border-[#d0d5dd] dark:border-[#363f4e] bg-white dark:bg-[#12151a] text-[#344054] dark:text-[#cfd5e0]'
                 }`}
               >
                 毎月末日
@@ -351,10 +353,10 @@ export const CardModal: React.FC<CardModalProps> = ({
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs transition-all ${
                     brandColor === c.id
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
-                      : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#8e98a8]'
+                      : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0]'
                   }`}
                 >
-                  <span className={`h-2.5 w-2.5 rounded-full ${c.bg}`} />
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: getBrandColorConfig(c.id, isDark).hex }} />
                   <span>{c.label}</span>
                   {brandColor === c.id && <Check className="h-3 w-3 text-[var(--color-primary)]" />}
                 </button>

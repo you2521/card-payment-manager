@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { CreditCard, BankAccount } from '../types';
 import { getBankAccount } from '../utils/paymentUtils';
-import { getBrandColorConfig } from '../utils/colors';
+import { getBrandColorConfig, getAccessibleColorHex } from '../utils/colors';
 import { adjustToNextBankBusinessDay } from '../utils/bankHolidayUtils';
 import {
-  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Landmark,
@@ -16,6 +15,7 @@ import {
 interface CalendarViewProps {
   cards: CreditCard[];
   accounts: BankAccount[];
+  isDark?: boolean;
   adjustForBankHolidays?: boolean;
   onEditCard?: (card: CreditCard) => void;
 }
@@ -40,6 +40,7 @@ interface DayPaymentItem {
 export const CalendarView: React.FC<CalendarViewProps> = ({
   cards,
   accounts,
+  isDark = false,
   adjustForBankHolidays = true,
   onEditCard,
 }) => {
@@ -143,24 +144,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className="space-y-4 animate-fadeIn">
-      {/* ページタイトルヘッダー（参考画像風の縦アクセントバーを採用） */}
+      {/* DADS準拠の端正なセクション見出し */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4.5 rounded-full theme-bg-primary shrink-0" />
-          <div className="flex h-7 w-7 items-center justify-center rounded-md theme-bg-subtle text-[var(--color-primary)]">
-            <CalendarIcon className="h-4 w-4" />
-          </div>
+          <span className="w-1 h-4 rounded-xs bg-[var(--color-primary)] shrink-0" />
           <h2 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
             支払日カレンダー
           </h2>
-          <span className="text-xs font-mono font-bold text-[#475467] dark:text-[#98a2b3] bg-[#f4f6f8] dark:bg-[#222730] px-2 py-0.5 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
-            {year}年{month + 1}月: 計{totalPaymentsInMonth}件
+          <span className="text-xs font-mono text-[#667085] dark:text-[#98a2b3]">
+            ({year}年{month + 1}月: 計{totalPaymentsInMonth}件)
           </span>
         </div>
       </div>
 
       {/* メインカレンダーカード */}
-      <div className="rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-5 shadow-xs transition-colors space-y-4">
+      <div className="rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-5 transition-colors space-y-4">
         {/* 月切り替えコントロールバー */}
         <div className="flex items-center justify-between bg-[#f4f6f8] dark:bg-[#222730] p-2 sm:p-2.5 rounded-lg border border-[#d0d5dd] dark:border-[#363f4e]">
           <button
@@ -169,7 +167,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             className="p-1.5 rounded-md hover:bg-white dark:hover:bg-[#1a1f26] border border-transparent hover:border-[#d0d5dd] text-[#344054] dark:text-[#cfd5e0] transition-colors cursor-pointer"
             title="前月を表示"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft strokeWidth={1.75} className="h-5 w-5" />
           </button>
 
           <div className="flex items-center gap-2">
@@ -180,7 +178,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <button
                 type="button"
                 onClick={handleCurrentMonth}
-                className="px-2.5 py-1 text-xs font-bold rounded-md theme-bg-primary text-white transition-all shadow-xs cursor-pointer hover:opacity-90"
+                className="px-2.5 py-1 text-xs font-bold rounded-md theme-bg-primary text-white transition-all cursor-pointer"
               >
                 今月へ
               </button>
@@ -193,7 +191,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             className="p-1.5 rounded-md hover:bg-white dark:hover:bg-[#1a1f26] border border-transparent hover:border-[#d0d5dd] text-[#344054] dark:text-[#cfd5e0] transition-colors cursor-pointer"
             title="翌月を表示"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight strokeWidth={1.75} className="h-5 w-5" />
           </button>
         </div>
 
@@ -204,9 +202,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               key={wd.name}
               className={
                 wd.isSunday
-                  ? 'text-[#d92d20]'
+                  ? 'text-[#d92d20] dark:text-[#f87171]'
                   : wd.isSaturday
-                  ? 'theme-text-accent'
+                  ? 'text-[var(--color-primary)]'
                   : 'text-[#475467] dark:text-[#98a2b3]'
               }
             >
@@ -244,11 +242,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 onClick={() => setSelectedDay(dayNum)}
                 className={`h-14 sm:h-16 p-1 sm:p-1.5 rounded-lg flex flex-col justify-between items-start transition-all border text-left cursor-pointer ${
                   isSelectedCell
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] ring-2 ring-[var(--color-primary)] shadow-xs'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] ring-1 ring-[var(--color-primary)]'
                     : isTodayCell
                     ? 'border-[var(--color-primary)]/60 bg-[var(--color-primary-subtle)]/40 hover:border-[var(--color-primary)]'
                     : hasPayments
-                    ? 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/30 hover:border-[var(--color-primary)]'
+                    ? 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/35 hover:border-[var(--color-primary)]'
                     : 'bg-white dark:bg-[#1a1f26] border-[#d0d5dd]/70 dark:border-[#2e3642] hover:bg-[#f4f6f8] dark:hover:bg-[#222730]'
                 }`}
               >
@@ -259,9 +257,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       isTodayCell
                         ? 'w-5 h-5 rounded-full theme-bg-primary text-white flex items-center justify-center text-[10px]'
                         : isSunday
-                        ? 'text-[#d92d20]'
+                        ? 'text-[#d92d20] dark:text-[#f87171]'
                         : isSaturday
-                        ? 'theme-text-accent'
+                        ? 'text-[var(--color-primary)]'
                         : 'text-[#101828] dark:text-white'
                     }`}
                   >
@@ -269,28 +267,28 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </span>
 
                   {hasPayments && (
-                    <span className="text-[9px] font-bold px-1 py-0.2 rounded-xs bg-[var(--color-primary)] text-white">
+                    <span className="text-[9px] font-bold px-1 py-0.2 rounded-xs theme-bg-primary text-white">
                       {payments.length}
                     </span>
                   )}
                 </div>
 
-                {/* カラードット */}
+                {/* カラードット（ライト/ダーク双方で高視認性の色） */}
                 {hasPayments && (
-                  <div className="w-full flex flex-wrap gap-0.5 mt-auto">
+                  <div className="w-full flex flex-wrap gap-1 mt-auto">
                     {payments.slice(0, 3).map((item) => {
-                      const cfg = getBrandColorConfig(item.card.brandColor, true);
+                      const cfg = getBrandColorConfig(item.card.brandColor, isDark);
                       return (
                         <span
                           key={item.card.id}
-                          className="w-1.5 h-1.5 rounded-full shrink-0 shadow-2xs"
-                          style={{ backgroundColor: cfg.hex || 'var(--color-primary)' }}
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: cfg.hex }}
                           title={item.card.name}
                         />
                       );
                     })}
                     {payments.length > 3 && (
-                      <span className="text-[8px] text-[#667085] dark:text-[#8e98a8] leading-none">
+                      <span className="text-[8px] text-[#667085] dark:text-[#98a2b3] leading-none">
                         +{payments.length - 3}
                       </span>
                     )}
@@ -303,22 +301,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* 選択した日の詳細（独立アイランドカードUI） */}
-      <div className="rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3 sm:p-5 shadow-xs space-y-3">
+      <div className="rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-3.5 sm:p-5 space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-[#d0d5dd] dark:border-[#2e3642]">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-[var(--color-primary)]" />
+            <Clock strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
             <h3 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white">
               {month + 1}月{selectedDay}日（{selectedWeekdayName}）の引き落とし予定
             </h3>
           </div>
-          <span className="text-xs font-mono font-bold text-[#475467] dark:text-[#98a2b3] bg-[#f4f6f8] dark:bg-[#222730] px-2 py-0.5 rounded-xs border border-[#d0d5dd] dark:border-[#363f4e]">
+          <span className="text-xs font-mono font-bold text-[#475467] dark:text-[#cfd5e0]">
             {selectedDayPayments.length} 件
           </span>
         </div>
 
         {selectedDayPayments.length === 0 ? (
           <div className="py-6 text-center space-y-1">
-            <p className="text-xs sm:text-sm text-[#667085] dark:text-[#8e98a8]">
+            <p className="text-xs sm:text-sm text-[#667085] dark:text-[#98a2b3]">
               この日に引き落とし予定のカードはありません。
             </p>
             <p className="text-[11px] text-[#98a2b3] dark:text-[#667085]">
@@ -328,19 +326,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
             {selectedDayPayments.map((item) => {
-              const { card, isAdjusted, originalDay, reason } = item;
+              const { card, isAdjusted, originalDay } = item;
               const linkedAccount = getBankAccount(accounts, card.bankAccountId);
-              const brandCfg = getBrandColorConfig(card.brandColor, true);
+              const brandCfg = getBrandColorConfig(card.brandColor, isDark);
+              const accColor = getAccessibleColorHex(linkedAccount?.color, isDark);
 
               return (
                 <div
                   key={card.id}
-                  className="p-3 rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8]/60 dark:bg-[#222730]/60 flex items-center justify-between gap-3 shadow-2xs hover:border-[var(--color-primary)] transition-all"
+                  className="p-3 rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8]/60 dark:bg-[#222730]/60 flex items-center justify-between gap-3 hover:border-[var(--color-primary)] transition-all"
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span
-                      className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
-                      style={{ backgroundColor: brandCfg.hex || 'var(--color-primary)' }}
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: brandCfg.hex }}
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -348,13 +347,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           {card.name}
                         </span>
                         {isAdjusted && (
-                          <span className="inline-flex items-center text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.2 rounded-xs border border-amber-300 dark:border-amber-700">
+                          <span className="inline-flex items-center text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.2 rounded-xs border border-amber-300 dark:border-amber-700">
                             休日補正（本来{originalDay}日）
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-[#475467] dark:text-[#98a2b3] flex items-center gap-1 mt-0.5">
-                        <Landmark className="h-3 w-3 text-[var(--color-primary)] shrink-0" />
+                      <div className="text-[11px] text-[#475467] dark:text-[#cfd5e0] flex items-center gap-1.5 mt-0.5">
+                        <Landmark
+                          strokeWidth={1.75}
+                          className="h-3.5 w-3.5 shrink-0"
+                          style={{ color: linkedAccount ? accColor : 'var(--color-primary)' }}
+                        />
                         <span className="truncate">
                           {linkedAccount ? linkedAccount.name : '口座未設定'}
                         </span>
@@ -369,7 +372,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       className="p-1.5 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#cfd5e0] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors cursor-pointer shrink-0"
                       title="カード設定を編集"
                     >
-                      <Pencil className="h-3.5 w-3.5" />
+                      <Pencil strokeWidth={1.75} className="h-3.5 w-3.5" />
                     </button>
                   )}
                 </div>
@@ -380,8 +383,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* 補足案内 */}
-      <div className="p-3 rounded-lg border border-[#d0d5dd]/80 dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#161a20] flex items-start gap-2 text-xs text-[#475467] dark:text-[#8e98a8]">
-        <Info className="h-4 w-4 text-[var(--color-primary)] shrink-0 mt-0.5" />
+      <div className="p-3 rounded-lg border border-[#d0d5dd]/80 dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#161a20] flex items-start gap-2 text-xs text-[#475467] dark:text-[#98a2b3]">
+        <Info strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0 mt-0.5" />
         <p className="leading-relaxed text-[11px]">
           土日祝日等の休業日補正が有効なカードは、自動的に翌営業日の位置に表示されます。補正は「設定・保存」または各カードの編集画面から変更できます。
         </p>

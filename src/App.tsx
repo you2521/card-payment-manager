@@ -39,15 +39,6 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  useEffect(() => {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
-
   // デザインアクセントカラー設定（ブルー、オレンジ、グリーン、パープル、レッド、スレート）
   const [themeAccentColor, setThemeAccentColor] = useState<ThemeAccentColor>(() => {
     try {
@@ -66,16 +57,33 @@ export default function App() {
     localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
   };
 
-  // テーマカラーをルートCSS変数に適用
+  // テーマ（ライト/ダーク）＆ アクセントカラーをルートCSS変数およびステータスバー（Edge-to-Edge）に適用
   useEffect(() => {
-    const config = getThemeColorConfig(themeAccentColor);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    const isDarkMode = theme === 'dark';
     const root = document.documentElement;
-    root.style.setProperty('--color-primary', config.primaryHex);
-    root.style.setProperty('--color-primary-hover', config.hoverHex);
+
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
+    // Edge-to-Edge: ステータスバー（Dynamic Island等）の背景色をヘッダーとシームレスに統合
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', isDarkMode ? '#161a20' : '#ffffff');
+    }
+
+    // 設定可能な6色すべてで、ライト/ダーク双方で最高視認性を持つカラーペアをCSS変数に注入
+    const config = getThemeColorConfig(themeAccentColor);
+    root.style.setProperty('--color-primary', isDarkMode ? config.darkPrimaryHex : config.primaryHex);
+    root.style.setProperty('--color-primary-hover', isDarkMode ? config.darkBtnHoverHex : config.hoverHex);
+    root.style.setProperty('--color-btn-bg', isDarkMode ? config.darkBtnBgHex : config.primaryHex);
+    root.style.setProperty('--color-btn-hover', isDarkMode ? config.darkBtnHoverHex : config.hoverHex);
     root.style.setProperty('--color-primary-subtle', config.lightBgHex);
     root.style.setProperty('--color-primary-subtle-dark', config.subtleDarkHex);
-    root.style.setProperty('--color-primary-light', config.lightTextHex);
-  }, [themeAccentColor]);
+  }, [theme, themeAccentColor]);
 
   // 金融機関休業日（土日祝日）補正設定
   const [adjustForBankHolidays, setAdjustForBankHolidays] = useState<boolean>(() => {
@@ -258,10 +266,7 @@ export default function App() {
     <div className={`min-h-screen font-sans antialiased flex flex-col transition-colors ${
       isDark ? 'bg-[#12151a] text-[#f0f2f5]' : 'bg-[#f4f6f8] text-[#1a1f26]'
     }`}>
-      {/* デジタル庁風トップアクセントバー */}
-      <div className="h-1 w-full theme-bg-primary" />
-
-      {/* Header Bar */}
+      {/* Header Bar (Edge-to-Edge: 最上部の分断ラインを撤廃しステータスバーまでシームレスに統合) */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -274,11 +279,12 @@ export default function App() {
       />
 
       {/* Main Container (スマホではボトムナビの高さ分 pb-20 を確保) */}
-      <main className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-6 flex-1 w-full space-y-4 pb-20 md:pb-6">
+      <main className="mx-auto max-w-6xl px-3.5 py-3.5 sm:px-6 sm:py-6 flex-1 w-full space-y-5 pb-20 md:pb-6">
         {activeTab === 'dashboard' && (
           <DashboardView
             cards={creditCards}
             accounts={bankAccounts}
+            isDark={isDark}
             adjustForBankHolidays={adjustForBankHolidays}
             onEditCard={handleOpenEditCard}
             onDeleteCard={handleRequestDeleteCard}
@@ -293,6 +299,7 @@ export default function App() {
           <CardManagementView
             cards={creditCards}
             accounts={bankAccounts}
+            isDark={isDark}
             onOpenAddCard={handleOpenAddCard}
             onEditCard={handleOpenEditCard}
             onDeleteCard={handleRequestDeleteCard}
@@ -304,6 +311,7 @@ export default function App() {
           <AccountManagementView
             accounts={bankAccounts}
             cards={creditCards}
+            isDark={isDark}
             onOpenAddAccount={handleOpenAddAccount}
             onEditAccount={handleOpenEditAccount}
             onDeleteAccount={handleRequestDeleteAccount}
@@ -314,6 +322,7 @@ export default function App() {
           <CalendarView
             cards={creditCards}
             accounts={bankAccounts}
+            isDark={isDark}
             adjustForBankHolidays={adjustForBankHolidays}
             onEditCard={handleOpenEditCard}
           />
@@ -323,6 +332,7 @@ export default function App() {
           <SettingsView
             cards={creditCards}
             accounts={bankAccounts}
+            isDark={isDark}
             adjustForBankHolidays={adjustForBankHolidays}
             onToggleBankHolidayAdjustment={handleToggleBankHolidayAdjustment}
             onRestoreData={handleRestoreData}
@@ -332,7 +342,7 @@ export default function App() {
         )}
       </main>
 
-      {/* デジタル庁デザインシステム準拠のクリーンなフッター (改行防止) */}
+      {/* デジタル庁デザインシステム準拠のクリーンなフッター */}
       <footer className={`border-t py-4 md:py-6 text-xs transition-colors mb-14 md:mb-0 ${
         isDark ? 'border-[#262c36] bg-[#161a20] text-[#8e98a8]' : 'border-[#d0d5dd] bg-white text-[#475467]'
       }`}>
@@ -342,27 +352,23 @@ export default function App() {
             <span className={`font-bold whitespace-nowrap ${isDark ? 'text-[#f0f2f5]' : 'text-[#101828]'}`}>
               カード＆口座引き落とし管理
             </span>
-            <span className="text-[10px] text-[#667085] whitespace-nowrap">（完全端末内保存・通信なし）</span>
+            <span className="text-[10px] text-[#667085] dark:text-[#98a2b3] whitespace-nowrap">（完全端末内保存・通信なし）</span>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-[#667085]">
+          <div className="flex items-center gap-3 text-[11px] text-[#667085] dark:text-[#98a2b3]">
             <button
               onClick={() => setActiveTab('settings')}
               className="underline hover:text-[var(--color-primary)] cursor-pointer"
             >
               設定・バックアップ
             </button>
-            <span className="hidden sm:inline">|</span>
-            <span className="hidden sm:inline">デジタル庁デザインシステム準拠</span>
           </div>
         </div>
       </footer>
 
-      {/* スマホ用ボトムナビゲーション (5つのタブすべてシームレスにページ遷移) */}
+      {/* スマホ用ボトムナビゲーション (Edge-to-Edge セーフエリア対応) */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        cardCount={creditCards.length}
-        accountCount={bankAccounts.length}
       />
 
       {/* Modals（データ登録・編集、削除確認） */}
@@ -372,6 +378,7 @@ export default function App() {
         onSave={handleSaveCard}
         editingCard={editingCard}
         bankAccounts={bankAccounts}
+        isDark={isDark}
         onOpenAddAccountModal={() => {
           setIsCardModalOpen(false);
           handleOpenAddAccount();
@@ -384,6 +391,7 @@ export default function App() {
         onClose={() => setIsAccountModalOpen(false)}
         onSave={handleSaveAccount}
         editingAccount={editingAccount}
+        isDark={isDark}
         onDeleteAccount={handleRequestDeleteAccount}
       />
 

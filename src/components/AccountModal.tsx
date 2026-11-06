@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Landmark, Sparkles, Trash2 } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { X, Landmark, Info, Trash2 } from 'lucide-react';
 import { BankAccount } from '../types';
 import { suggestAccountColor } from '../utils/colorSuggester';
+import { getAccessibleColorHex } from '../utils/colors';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface AccountModalProps {
   onSave: (accountData: Omit<BankAccount, 'id'>, accountId?: string) => void;
   editingAccount?: BankAccount | null;
   onDeleteAccount?: (accountId: string) => void;
+  isDark?: boolean;
 }
 
 const PRESET_COLORS = [
@@ -31,6 +33,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onSave,
   editingAccount,
   onDeleteAccount,
+  isDark = false,
 }) => {
   const [name, setName] = useState('');
   const [accountType, setAccountType] = useState('普通');
@@ -131,9 +134,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             {suggestion && (
-              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#b54708]">
+              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#93370d] dark:text-amber-300">
                 <span className="flex items-center gap-1 font-medium">
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Info strokeWidth={1.75} className="h-3.5 w-3.5" />
                   <span>おすすめ色: <strong>{suggestion.name}</strong></span>
                 </span>
                 {color !== suggestion.hex && (
@@ -196,10 +199,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   className={`flex items-center gap-1.5 p-2 rounded-md border text-xs text-left transition-all cursor-pointer ${
                     color === c.id
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
-                      : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#475467] dark:text-[#8e98a8]'
+                      : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0]'
                   }`}
                 >
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.id }} />
+                  <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: getAccessibleColorHex(c.id, isDark) }} />
                   <span className="truncate text-[10px]">{c.name.split(' ')[0]}</span>
                 </button>
               ))}
