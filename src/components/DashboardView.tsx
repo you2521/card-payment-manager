@@ -124,7 +124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, [accounts, cards, cardsWithSchedule]);
 
-  // データが0件の場合のEmpty State（DADS準拠・線アイコン）
+  // データが0件の場合のEmpty State
   if (cards.length === 0 && accounts.length === 0) {
     return (
       <div className="space-y-6 py-4 animate-fadeIn">
@@ -181,34 +181,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           1. 次回引き落とし予定（Hero Attention Card）
           ======================================================== */}
       {upcomingGroup && (
-        <section aria-label="次回引き落とし予定" className="space-y-2">
-          {/* DADS準拠の端正なセクション見出し */}
+        <section aria-label="次回引き落とし予定" className="space-y-2.5">
+          {/* 見出し（文字サイズ拡大） */}
           <div className="flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-2">
-              <span className="w-1 h-4 rounded-xs bg-[var(--color-primary)] shrink-0" />
-              <h2 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-5 rounded-xs bg-[var(--color-primary)] shrink-0" />
+              <h2 className="text-base sm:text-lg font-bold text-[#101828] dark:text-white">
                 次回引き落とし予定
               </h2>
             </div>
             {upcomingGroup.isAdjusted && (
-              <span className="text-[11px] text-[#b54708] dark:text-amber-300 font-medium">
+              <span className="text-xs text-[#b54708] dark:text-amber-300 font-medium">
                 ※{upcomingGroup.adjustmentReason}
               </span>
             )}
           </div>
 
-          {/* 独立アイランドカードUI */}
+          {/* 独立アイランドカードUI（文字拡大・高視認性） */}
           <div
             onClick={() => onEditCard(upcomingGroup.items[0].card)}
-            className="p-3.5 sm:p-4 rounded-xl border border-[var(--color-primary)]/45 dark:border-[var(--color-primary)]/45 bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)] transition-all flex items-center justify-between gap-3.5 cursor-pointer group"
+            className="p-3.5 sm:p-4 rounded-xl border border-[var(--color-primary)]/45 dark:border-[var(--color-primary)]/45 bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)] transition-all flex items-center justify-between gap-3.5 cursor-pointer group shadow-xs"
           >
-            {/* 左側：日付＆残り日数タイル（全テーマカラーで高コントラスト表示） */}
-            <div className="flex flex-col items-center justify-center min-w-[68px] sm:min-w-[74px] h-[68px] sm:h-[74px] rounded-lg theme-bg-subtle border border-[var(--color-primary)]/25 text-center shrink-0 p-1.5">
-              <span className="text-[10px] font-bold text-[#344054] dark:text-[#cfd5e0] leading-none">
+            {/* 左側：日付＆残り日数タイル（数字を大きく表示） */}
+            <div className="flex flex-col items-center justify-center min-w-[72px] sm:min-w-[80px] h-[68px] sm:h-[76px] rounded-lg theme-bg-subtle border border-[var(--color-primary)]/25 text-center shrink-0 p-1.5">
+              <span className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0] leading-none">
                 {upcomingGroup.nextDateWithWeekday}
               </span>
               <span
-                className={`text-sm sm:text-base font-mono font-extrabold leading-tight mt-1.5 ${
+                className={`text-base sm:text-lg font-mono font-black leading-tight mt-1.5 ${
                   upcomingGroup.isToday
                     ? 'text-[#d92d20] dark:text-[#f87171]'
                     : upcomingGroup.isTomorrow
@@ -222,13 +222,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   ? '明日'
                   : `あと${upcomingGroup.daysLeft}日`}
               </span>
-              <span className="text-[9px] text-[#475467] dark:text-[#98a2b3] font-medium leading-none mt-1">
+              <span className="text-[10px] text-[#475467] dark:text-[#98a2b3] font-bold leading-none mt-1">
                 {upcomingGroup.items.length}件の予定
               </span>
             </div>
 
-            {/* 中央：カード名 & 口座名（重複ドットをなくし、銀行色付きの線アイコンに統一） */}
-            <div className="flex-1 min-w-0 space-y-2.5">
+            {/* 中央：カード名 & 口座名（文字拡大・はっきりした視認性） */}
+            <div className="flex-1 min-w-0 space-y-2">
               {upcomingGroup.items.map(({ card }) => {
                 const acc = getBankAccount(accounts, card.bankAccountId);
                 const brandCfg = getBrandColorConfig(card.brandColor, isDark);
@@ -241,27 +241,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       e.stopPropagation();
                       onEditCard(card);
                     }}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: brandCfg.hex }}
                       />
-                      <span className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white group-hover:text-[var(--color-primary)] truncate">
+                      <span className="text-base sm:text-lg font-bold text-[#101828] dark:text-white group-hover:text-[var(--color-primary)] truncate tracking-tight">
                         {card.name}
                       </span>
                     </div>
 
-                    {/* 口座表示（線アイコンのみ、重複ドットなし） */}
-                    <div className="text-[11px] text-[#475467] dark:text-[#cfd5e0] flex items-center gap-1.5 pl-4.5 sm:pl-0 shrink-0">
+                    {/* 口座表示（文字サイズを大きく） */}
+                    <div className="text-xs sm:text-sm text-[#344054] dark:text-[#f0f2f5] flex items-center gap-1.5 pl-5 sm:pl-0 shrink-0">
                       <Landmark
                         strokeWidth={1.75}
-                        className="h-3.5 w-3.5 shrink-0"
+                        className="h-4 w-4 shrink-0"
                         style={{ color: acc ? accColor : 'var(--color-primary)' }}
                       />
                       {acc ? (
-                        <span className="font-medium text-[#344054] dark:text-[#cfd5e0] truncate max-w-[160px] sm:max-w-none">
+                        <span className="font-semibold text-[#101828] dark:text-white truncate max-w-[170px] sm:max-w-none">
                           {acc.name}
                         </span>
                       ) : (
@@ -273,10 +273,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               })}
             </div>
 
-            {/* 右側：シンプルな線シェブロン（枠線を撤廃してノイズを削減） */}
+            {/* 右側：シンプルな線シェブロン */}
             <ChevronRight
               strokeWidth={1.75}
-              className="h-4 w-4 text-[#98a2b3] dark:text-[#667085] group-hover:text-[var(--color-primary)] transition-colors shrink-0"
+              className="h-5 w-5 text-[#98a2b3] dark:text-[#667085] group-hover:text-[var(--color-primary)] transition-colors shrink-0"
             />
           </div>
         </section>
@@ -287,9 +287,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ======================================================== */}
       <section aria-label="引き落としスケジュール" className="space-y-2.5">
         <div className="flex items-center justify-between px-0.5">
-          <div className="flex items-center gap-2">
-            <span className="w-1 h-4 rounded-xs bg-[var(--color-primary)] shrink-0" />
-            <h2 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-5 rounded-xs bg-[var(--color-primary)] shrink-0" />
+            <h2 className="text-base sm:text-lg font-bold text-[#101828] dark:text-white">
               引き落としスケジュール
             </h2>
           </div>
@@ -298,48 +298,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               type="button"
               onClick={() => onNavigateToTab('cards')}
-              className="text-xs font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+              className="text-xs sm:text-sm font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
             >
               <span>カード管理</span>
-              <ChevronRight strokeWidth={1.75} className="h-3.5 w-3.5" />
+              <ChevronRight strokeWidth={1.75} className="h-4 w-4" />
             </button>
           )}
         </div>
 
         {futureScheduleGroups.length === 0 ? (
           <div className="rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] p-4 sm:p-5 text-center space-y-1.5">
-            <p className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white flex items-center justify-center gap-1.5">
-              <CheckCircle2 strokeWidth={1.75} className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <p className="text-sm sm:text-base font-bold text-[#101828] dark:text-white flex items-center justify-center gap-2">
+              <CheckCircle2 strokeWidth={1.75} className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <span>すべての引き落とし予定が次回にまとまっています</span>
             </p>
-            <p className="text-[11px] text-[#667085] dark:text-[#98a2b3]">
+            <p className="text-xs text-[#667085] dark:text-[#98a2b3]">
               次回引き落としが完了すると、翌月の予定が自動的にここに表示されます。
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {futureScheduleGroups.map((group) => (
               <div
                 key={group.daysLeft}
                 onClick={() => onEditCard(group.items[0].card)}
-                className="p-3 sm:p-3.5 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)]/70 transition-all flex items-center justify-between gap-3.5 cursor-pointer group"
+                className="p-3.5 sm:p-4 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)]/70 transition-all flex items-center justify-between gap-3.5 cursor-pointer group shadow-xs"
               >
-                {/* 左側：アイキャッチ角丸タイル */}
-                <div className="flex flex-col items-center justify-center min-w-[64px] sm:min-w-[70px] h-[64px] sm:h-[70px] rounded-lg theme-bg-subtle border border-[var(--color-primary)]/20 text-center shrink-0 p-1">
-                  <span className="text-[10px] font-bold text-[#344054] dark:text-[#cfd5e0] leading-none">
+                {/* 左側：アイキャッチ角丸タイル（数字を大きく） */}
+                <div className="flex flex-col items-center justify-center min-w-[68px] sm:min-w-[76px] h-[64px] sm:h-[72px] rounded-lg theme-bg-subtle border border-[var(--color-primary)]/20 text-center shrink-0 p-1.5">
+                  <span className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0] leading-none">
                     {group.nextDateWithWeekday}
                   </span>
-                  <span className="text-sm sm:text-base font-mono font-extrabold text-[var(--color-primary)] leading-tight mt-1.5">
+                  <span className="text-base sm:text-lg font-mono font-black text-[var(--color-primary)] leading-tight mt-1.5">
                     あと{group.daysLeft}日
                   </span>
                   {group.isAdjusted && (
-                    <span className="text-[8.5px] text-[#b54708] dark:text-amber-300 font-bold leading-none mt-1">
+                    <span className="text-[9px] text-[#b54708] dark:text-amber-300 font-bold leading-none mt-1">
                       翌営業日
                     </span>
                   )}
                 </div>
 
-                {/* 中央：カード名 & 引き落とし口座 */}
+                {/* 中央：カード名 & 引き落とし口座（文字拡大） */}
                 <div className="flex-1 min-w-0 space-y-2">
                   {group.items.map(({ card }) => {
                     const acc = getBankAccount(accounts, card.bankAccountId);
@@ -353,27 +353,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           e.stopPropagation();
                           onEditCard(card);
                         }}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            className="w-3 h-3 rounded-full shrink-0"
                             style={{ backgroundColor: brandCfg.hex }}
                           />
-                          <span className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] truncate">
+                          <span className="text-base sm:text-lg font-bold text-[#101828] dark:text-white hover:text-[var(--color-primary)] truncate tracking-tight">
                             {card.name}
                           </span>
                         </div>
 
-                        {/* 口座表示（線アイコンのみ） */}
-                        <div className="text-[11px] text-[#475467] dark:text-[#cfd5e0] flex items-center gap-1.5 pl-4.5 sm:pl-0 shrink-0">
+                        {/* 口座表示 */}
+                        <div className="text-xs sm:text-sm text-[#344054] dark:text-[#f0f2f5] flex items-center gap-1.5 pl-5 sm:pl-0 shrink-0">
                           <Landmark
                             strokeWidth={1.75}
-                            className="h-3.5 w-3.5 shrink-0"
+                            className="h-4 w-4 shrink-0"
                             style={{ color: acc ? accColor : 'var(--color-primary)' }}
                           />
                           {acc ? (
-                            <span className="font-medium text-[#344054] dark:text-[#cfd5e0] truncate max-w-[160px] sm:max-w-none">
+                            <span className="font-semibold text-[#101828] dark:text-white truncate max-w-[170px] sm:max-w-none">
                               {acc.name}
                             </span>
                           ) : (
@@ -388,7 +388,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {/* 右側：シンプルな線シェブロン */}
                 <ChevronRight
                   strokeWidth={1.75}
-                  className="h-4 w-4 text-[#98a2b3] dark:text-[#667085] group-hover:text-[var(--color-primary)] transition-colors shrink-0"
+                  className="h-5 w-5 text-[#98a2b3] dark:text-[#667085] group-hover:text-[var(--color-primary)] transition-colors shrink-0"
                 />
               </div>
             ))}
@@ -402,12 +402,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {accounts.length > 0 && (
         <section aria-label="口座別サマリー" className="space-y-2.5">
           <div className="flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-2">
-              <span className="w-1 h-4 rounded-xs bg-[var(--color-primary)] shrink-0" />
-              <h2 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white">
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-5 rounded-xs bg-[var(--color-primary)] shrink-0" />
+              <h2 className="text-base sm:text-lg font-bold text-[#101828] dark:text-white">
                 引き落とし口座の状況
               </h2>
-              <span className="text-xs font-mono text-[#667085] dark:text-[#98a2b3]">
+              <span className="text-sm font-mono font-bold text-[#667085] dark:text-[#98a2b3]">
                 ({accounts.length})
               </span>
             </div>
@@ -416,56 +416,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigateToTab('accounts')}
-                className="text-xs font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                className="text-xs sm:text-sm font-bold text-[var(--color-primary)] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
               >
                 <span>口座管理</span>
-                <ChevronRight strokeWidth={1.75} className="h-3.5 w-3.5" />
+                <ChevronRight strokeWidth={1.75} className="h-4 w-4" />
               </button>
             )}
           </div>
 
-          {/* 口座独立カード一覧 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {/* 口座独立カード一覧（文字サイズ拡大） */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {accountSummaries.map(({ account, cardCount, nextPaymentInfo }) => {
               const accColor = getAccessibleColorHex(account.color, isDark);
               return (
                 <div
                   key={account.id}
                   onClick={() => onEditAccount(account)}
-                  className="p-3.5 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)] transition-all cursor-pointer flex flex-col justify-between gap-2.5"
+                  className="p-4 rounded-xl border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] hover:border-[var(--color-primary)] transition-all cursor-pointer flex flex-col justify-between gap-3 shadow-xs"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className="w-3 h-3 rounded-full shrink-0"
+                        className="w-3.5 h-3.5 rounded-full shrink-0"
                         style={{ backgroundColor: accColor }}
                       />
                       <div className="min-w-0">
-                        <h3 className="text-xs sm:text-sm font-bold text-[#101828] dark:text-white truncate">
+                        <h3 className="text-sm sm:text-base font-bold text-[#101828] dark:text-white truncate">
                           {account.name}
                         </h3>
-                        <p className="text-[10px] text-[#667085] dark:text-[#98a2b3]">
-                          {account.accountType || '普通'}
+                        <p className="text-xs text-[#667085] dark:text-[#98a2b3] mt-0.5">
+                          {account.accountType || '普通'}預金
                         </p>
                       </div>
                     </div>
 
-                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0] shrink-0">
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-xs bg-[#f4f6f8] dark:bg-[#222730] border border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0] shrink-0">
                       {cardCount}枚
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-[#d0d5dd]/50 dark:border-[#2e3642] flex items-center justify-between text-[11px] text-[#475467] dark:text-[#98a2b3]">
+                  <div className="pt-2.5 border-t border-[#d0d5dd]/50 dark:border-[#2e3642] flex items-center justify-between text-xs sm:text-sm text-[#475467] dark:text-[#98a2b3]">
                     <span>直近の予定</span>
                     {nextPaymentInfo ? (
-                      <span className="font-mono font-bold text-[#101828] dark:text-white flex items-center gap-1">
+                      <span className="font-mono font-bold text-[#101828] dark:text-white flex items-center gap-1.5">
                         <span>{nextPaymentInfo.nextDateFormatted}</span>
-                        <span className="text-[10px] text-[var(--color-primary)] font-bold">
+                        <span className="text-xs text-[var(--color-primary)] font-bold">
                           ({nextPaymentInfo.isToday ? '本日' : nextPaymentInfo.isTomorrow ? '明日' : `あと${nextPaymentInfo.daysLeft}日`})
                         </span>
                       </span>
                     ) : (
-                      <span className="text-[#98a2b3] text-[10px]">予定なし</span>
+                      <span className="text-[#98a2b3] text-xs">予定なし</span>
                     )}
                   </div>
                 </div>
@@ -476,24 +476,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {/* ========================================================
-          4. クイックアクション
+          4. クイックアクション（ボタンの目立ち度＆押しやすさ維持）
           ======================================================== */}
-      <div className="pt-1 flex items-center justify-between gap-2">
+      <div className="pt-1 flex items-center justify-between gap-2.5">
         <button
           onClick={onOpenAddCard}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg theme-bg-primary text-white text-xs font-bold transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg theme-bg-primary text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-xs"
         >
-          <Plus strokeWidth={1.75} className="h-3.5 w-3.5" />
+          <Plus strokeWidth={2} className="h-4 w-4" />
           <span>カードを登録する</span>
         </button>
 
         {onNavigateToTab && (
           <button
             onClick={() => onNavigateToTab('cards')}
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#475467] dark:text-[#cfd5e0] hover:text-[var(--color-primary)] cursor-pointer"
+            className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-[#475467] dark:text-[#cfd5e0] hover:text-[var(--color-primary)] cursor-pointer"
           >
             <span>全カード一覧を見る</span>
-            <ArrowRight strokeWidth={1.75} className="h-3.5 w-3.5" />
+            <ArrowRight strokeWidth={2} className="h-4 w-4" />
           </button>
         )}
       </div>
