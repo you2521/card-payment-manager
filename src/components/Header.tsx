@@ -24,14 +24,9 @@ export const Header: React.FC<HeaderProps> = ({
   const isDark = theme === 'dark';
 
   return (
-    <header className={`sticky top-0 z-30 border-b transition-colors backdrop-blur-md pt-[env(safe-area-inset-top)] ${
-      isDark 
-        ? 'border-[#262c36] bg-[#161a20]/95 text-[#f0f2f5]' 
-        : 'border-[#d0d5dd] bg-white/95 text-[#101828]'
-    }`}>
+    <header className="sticky top-0 z-30 border-b border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-[var(--dads-sumi-900)] transition-colors pt-[env(safe-area-inset-top)]">
       <div className="mx-auto max-w-6xl px-3.5 sm:px-6">
         <div className="flex items-center justify-between py-2.5 sm:py-3">
-          
           {/* Service Title & Line Icon (サイト内は端正な線アイコンで統一) */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <CreditCard
@@ -39,45 +34,38 @@ export const Header: React.FC<HeaderProps> = ({
               className="h-5 w-5 text-[var(--color-primary)] shrink-0"
             />
             <div className="min-w-0">
-              <h1 className={`text-sm sm:text-base font-bold tracking-tight whitespace-nowrap ${
-                isDark ? 'text-white' : 'text-[#101828]'
-              }`}>
+              <h1 className="text-[15px] sm:text-base font-bold tracking-tight whitespace-nowrap text-[var(--dads-sumi-900)]">
                 カード＆口座引き落とし管理
               </h1>
             </div>
           </div>
 
-          {/* Right Actions */}
+          {/* Right Actions - DADS Secondary Outline Button (4px角丸) */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* テーマ切替ボタン（線アイコン） */}
             <button
               onClick={onToggleTheme}
               title={isDark ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-md transition-colors border flex items-center gap-1.5 text-xs cursor-pointer ${
-                isDark
-                  ? 'bg-[#222730] text-[#f0f2f5] hover:bg-[#2c333f] border-[#363f4e]'
-                  : 'bg-[#f4f6f8] text-[#344054] hover:bg-[#eaecf0] border-[#d0d5dd]'
-              }`}
+              className="px-2.5 py-1.5 rounded-[4px] transition-colors border border-[var(--color-primary)] bg-[var(--dads-white)] hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] flex items-center gap-1.5 text-xs font-bold cursor-pointer"
             >
               {isDark ? (
-                <Sun strokeWidth={1.75} className="h-4 w-4 text-amber-300" />
+                <Sun strokeWidth={2} className="h-3.5 w-3.5 text-amber-400" />
               ) : (
-                <Moon strokeWidth={1.75} className="h-4 w-4 text-[#475467]" />
+                <Moon strokeWidth={2} className="h-3.5 w-3.5 text-[var(--color-primary)]" />
               )}
-              <span className="hidden sm:inline font-medium">{isDark ? 'ライト' : 'ダーク'}</span>
+              <span className="hidden sm:inline">{isDark ? 'ライト' : 'ダーク'}</span>
             </button>
           </div>
         </div>
 
         {/* Desktop Navigation Tabs (PCでのみ表示) */}
-        <nav className="hidden md:flex items-center space-x-6 border-t border-[#d0d5dd]/40 dark:border-[#262c36] -mb-[1px]">
+        <nav className="hidden md:flex items-center space-x-6 border-t border-[var(--dads-gray-200)] -mb-[1px]">
           {/* 1. 概要 */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[#667085] dark:text-[#98a2b3] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+                : 'border-transparent text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)]'
             }`}
           >
             <LayoutDashboard strokeWidth={1.75} className="h-4 w-4 shrink-0" />
@@ -90,13 +78,13 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'cards'
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[#667085] dark:text-[#98a2b3] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+                : 'border-transparent text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)]'
             }`}
           >
             <CreditCard strokeWidth={1.75} className="h-4 w-4 shrink-0" />
             <span>カード管理</span>
             {cardCount > 0 && (
-              <span className="text-xs font-mono text-[#667085] dark:text-[#98a2b3] font-normal">
+              <span className="text-xs font-mono text-[var(--dads-sumi-700)] font-bold">
                 ({cardCount})
               </span>
             )}
@@ -108,13 +96,13 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'accounts'
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[#667085] dark:text-[#98a2b3] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+                : 'border-transparent text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)]'
             }`}
           >
             <Landmark strokeWidth={1.75} className="h-4 w-4 shrink-0" />
             <span>引き落とし口座</span>
             {accountCount > 0 && (
-              <span className="text-xs font-mono text-[#667085] dark:text-[#98a2b3] font-normal">
+              <span className="text-xs font-mono text-[var(--dads-sumi-700)] font-bold">
                 ({accountCount})
               </span>
             )}
@@ -126,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'calendar'
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[#667085] dark:text-[#98a2b3] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+                : 'border-transparent text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)]'
             }`}
           >
             <Calendar strokeWidth={1.75} className="h-4 w-4 shrink-0" />
@@ -139,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center gap-1.5 py-2.5 px-1 text-sm font-bold border-b-2 transition-all cursor-pointer ${
               activeTab === 'settings'
                 ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                : 'border-transparent text-[#667085] dark:text-[#98a2b3] hover:text-[#101828] dark:hover:text-[#f0f2f5]'
+                : 'border-transparent text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)]'
             }`}
           >
             <Settings strokeWidth={1.75} className="h-4 w-4 shrink-0" />

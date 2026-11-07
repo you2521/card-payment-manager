@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Landmark, Info, Trash2 } from 'lucide-react';
 import { BankAccount } from '../types';
 import { suggestAccountColor } from '../utils/colorSuggester';
@@ -89,10 +89,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-      <div className="relative w-full max-w-md rounded-lg border border-[#d0d5dd] dark:border-[#2e3642] bg-white dark:bg-[#1a1f26] shadow-xl overflow-hidden text-[#101828] dark:text-[#f0f2f5] animate-scaleIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 animate-fadeIn">
+      <div className="relative w-full max-w-md rounded-[8px] border border-[var(--dads-gray-300)] bg-[var(--dads-white)] overflow-hidden text-[var(--dads-sumi-900)] animate-scaleIn">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[#d0d5dd] dark:border-[#2e3642] bg-[#f4f6f8] dark:bg-[#222730]">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]">
           <div className="flex items-center gap-2">
             <Landmark className="h-5 w-5 text-[var(--color-primary)]" />
             <h2 className="text-base sm:text-lg font-bold">
@@ -101,27 +101,28 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-[#667085] hover:text-[#101828] dark:hover:text-white hover:bg-[#eaecf0] dark:hover:bg-[#2c333f] cursor-pointer"
+            className="dads-action-btn px-2"
+            title="閉じる"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* フォーム */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           {error && (
-            <div className="p-3 rounded-md bg-[#d92d20]/10 border border-[#d92d20]/30 text-[#d92d20] text-xs font-bold">
+            <div className="p-3 rounded-[4px] bg-[var(--dads-danger-bg)] border border-[var(--dads-danger)] text-[var(--dads-danger)] text-xs font-bold">
               {error}
             </div>
           )}
 
           {/* 銀行名 */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0]">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 銀行名 / 口座名
               </label>
-              <span className="bg-[#d92d20] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-xs">
+              <span className="bg-[var(--dads-danger)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[3px]">
                 必須
               </span>
             </div>
@@ -131,10 +132,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="例: 三井住友銀行, 楽天銀行, 三菱UFJ銀行"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-2 text-sm text-[var(--dads-sumi-900)] placeholder-[var(--dads-sumi-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             {suggestion && (
-              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-md bg-[#b54708]/10 border border-[#b54708]/20 text-[#93370d] dark:text-amber-300">
+              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-[4px] bg-[var(--dads-warning-bg)] border border-[var(--dads-warning-border)] text-[var(--dads-warning-text)]">
                 <span className="flex items-center gap-1 font-medium">
                   <Info strokeWidth={1.75} className="h-3.5 w-3.5" />
                   <span>おすすめ色: <strong>{suggestion.name}</strong></span>
@@ -143,7 +144,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setColor(suggestion.hex)}
-                    className="font-bold underline ml-2"
+                    className="font-bold underline ml-2 cursor-pointer"
                   >
                     適用
                   </button>
@@ -154,18 +155,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
           {/* 口座種別 */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0]">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 口座種別
               </label>
-              <span className="bg-[#f2f4f7] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] text-[10px] px-1.5 py-0.2 rounded-xs">
+              <span className="dads-tag text-[10px] py-0.5">
                 任意
               </span>
             </div>
             <select
               value={accountType}
               onChange={(e) => setAccountType(e.target.value)}
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-2 text-sm text-[var(--dads-sumi-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <option value="普通">普通預金</option>
               <option value="当座">当座預金</option>
@@ -177,16 +178,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           {/* シンボルカラー */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0]">
+              <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 シンボルカラー
               </label>
-              <label className="flex items-center gap-1 text-xs text-[#667085] cursor-pointer">
+              <label className="flex items-center gap-1 text-xs text-[var(--dads-sumi-700)] cursor-pointer">
                 <span>カスタム色:</span>
                 <input
                   type="color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="w-5 h-5 rounded-xs border-0 cursor-pointer p-0 bg-transparent"
+                  className="w-5 h-5 rounded-[3px] border-0 cursor-pointer p-0 bg-transparent"
                 />
               </label>
             </div>
@@ -196,14 +197,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   key={c.id}
                   type="button"
                   onClick={() => setColor(c.id)}
-                  className={`flex items-center gap-1.5 p-2 rounded-md border text-xs text-left transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 p-2 rounded-[4px] border text-xs text-left transition-all cursor-pointer ${
                     color === c.id
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
-                      : 'border-[#d0d5dd] dark:border-[#363f4e] text-[#344054] dark:text-[#cfd5e0]'
+                      : 'border-[var(--dads-gray-300)] text-[var(--dads-sumi-900)]'
                   }`}
                 >
                   <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: getAccessibleColorHex(c.id, isDark) }} />
-                  <span className="truncate text-[10px]">{c.name.split(' ')[0]}</span>
+                  <span className="truncate text-[11px]">{c.name.split(' ')[0]}</span>
                 </button>
               ))}
             </div>
@@ -211,11 +212,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
           {/* メモ */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-[#344054] dark:text-[#cfd5e0]">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 メモ・用途
               </label>
-              <span className="bg-[#f2f4f7] dark:bg-[#222730] text-[#344054] dark:text-[#cfd5e0] text-[10px] px-1.5 py-0.2 rounded-xs">
+              <span className="dads-tag text-[10px] py-0.5">
                 任意
               </span>
             </div>
@@ -224,12 +225,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="例: 給与受取口座、光熱費引き落とし兼用"
-              className="w-full rounded-md bg-white dark:bg-[#12151a] border border-[#d0d5dd] dark:border-[#363f4e] px-3 py-2 text-sm text-[#101828] dark:text-white placeholder-[#98a2b3] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+              className="w-full rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-2 text-sm text-[var(--dads-sumi-900)] placeholder-[var(--dads-sumi-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
             />
           </div>
 
           {/* ボタン */}
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#d0d5dd] dark:border-[#2e3642]">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[var(--dads-gray-300)]">
             <div>
               {editingAccount && onDeleteAccount && (
                 <button
@@ -238,7 +239,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     onDeleteAccount(editingAccount.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md border border-[#d92d20]/30 text-[#d92d20] hover:bg-rose-50 text-xs font-bold cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-2 rounded-[4px] border border-[var(--dads-danger)] text-[var(--dads-danger)] hover:bg-[var(--dads-danger-bg)] text-xs font-bold cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>削除する</span>
@@ -250,13 +251,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-md border border-[#d0d5dd] dark:border-[#363f4e] text-xs font-bold text-[#344054] dark:text-[#cfd5e0] hover:bg-[#f4f6f8] dark:hover:bg-[#222730] cursor-pointer"
+                className="px-4 py-2 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-xs font-bold text-[var(--dads-sumi-900)] hover:bg-[var(--dads-gray-100)] cursor-pointer"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-md theme-bg-primary text-white text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 rounded-[4px] theme-bg-primary text-white text-xs font-bold cursor-pointer"
               >
                 {editingAccount ? '更新する' : '登録する'}
               </button>
