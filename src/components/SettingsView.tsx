@@ -12,7 +12,8 @@ import {
   Share2,
   MoreVertical,
   PlusSquare,
-  Info,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { CreditCard, BankAccount, ThemeAccentColor } from '../types';
 import { THEME_COLOR_PRESETS } from '../utils/themeColors';
@@ -43,6 +44,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     type: 'idle' | 'success' | 'error';
     text?: string;
   }>({ type: 'idle' });
+  const [showInstallSteps, setShowInstallSteps] = useState(false);
 
   // PWA インストール関連の状態
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -159,12 +161,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="space-y-4 animate-fadeIn">
-      {/* DADS セクション見出し */}
-      <div className="dads-section-header">
-        <h2 className="dads-section-title">設定・データ保存</h2>
-        <span className="dads-counter-badge">端末内保存</span>
-      </div>
-
       {/* ステータスメッセージ */}
       {statusMessage.type !== 'idle' && (
         <div
@@ -185,137 +181,108 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={() => setStatusMessage({ type: 'idle' })}
-            className="text-xs underline font-bold text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)] cursor-pointer"
+            className="text-xs underline font-bold text-[var(--dads-sumi-700)] hover:text-[var(--dads-sumi-900)] cursor-pointer shrink-0"
           >
             閉じる
           </button>
         </div>
       )}
 
-      {/* 設定カードグリッド */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-        {/* 1. デザインテーマカラー（2列/3列レスポンシブ配置で見切れゼロ、DADS 4px角丸ボタン） */}
-        <div className="dads-card p-4 sm:p-5 space-y-3.5">
-          <div className="flex items-center justify-between pb-2.5 border-b border-[var(--dads-gray-200)]">
-            <div className="flex items-center gap-2">
-              <Palette strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
-              <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
-                テーマカラー設定
-              </h3>
-            </div>
-            <span className="dads-counter-badge">
-              {THEME_COLOR_PRESETS[themeAccentColor]?.label || 'ブルー'}
-            </span>
-          </div>
-
-          <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-            ボタンや選択タブ、アクセントバーの基調色を変更できます。ライト・ダークどちらのテーマでも高い視認性に自動調整されます。
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-0.5">
-            {(Object.keys(THEME_COLOR_PRESETS) as ThemeAccentColor[]).map((key) => {
-              const config = THEME_COLOR_PRESETS[key];
-              const isSelected = themeAccentColor === key;
-              const dotHex = isDark ? config.swatchDarkHex : config.primaryHex;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => onChangeThemeColor(key)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-[4px] border text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] ring-1 ring-[var(--color-primary)] text-[var(--dads-sumi-900)]'
-                      : 'border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]/60 hover:bg-[var(--dads-white)] text-[var(--dads-sumi-900)]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="w-3.5 h-3.5 rounded-full shrink-0"
-                      style={{ backgroundColor: dotHex }}
-                    />
-                    <span className="whitespace-nowrap">{config.label}</span>
-                  </div>
-                  {isSelected && <Check strokeWidth={2.25} className="h-4 w-4 text-[var(--color-primary)] shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
+      {/* ========================================================
+          1. 表示・計算設定
+          ======================================================== */}
+      <section aria-label="表示・計算設定" className="space-y-2.5">
+        <div className="dads-section-header">
+          <h2 className="dads-section-title">表示・計算設定</h2>
         </div>
 
-        {/* 2. 土日祝日営業日補正 (DADS トグルスイッチ採用) */}
-        <div className="dads-card p-4 sm:p-5 space-y-3.5 flex flex-col justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[var(--dads-gray-200)]">
+        <div className="dads-card divide-y divide-[var(--dads-gray-200)]">
+          {/* 行1: テーマカラー */}
+          <div className="p-3.5 sm:p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Palette strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
+                  テーマカラー
+                </h3>
+              </div>
+              <span className="dads-counter-badge">
+                {THEME_COLOR_PRESETS[themeAccentColor]?.label || 'ブルー'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {(Object.keys(THEME_COLOR_PRESETS) as ThemeAccentColor[]).map((key) => {
+                const config = THEME_COLOR_PRESETS[key];
+                const isSelected = themeAccentColor === key;
+                const dotHex = isDark ? config.swatchDarkHex : config.primaryHex;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onChangeThemeColor(key)}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-[4px] text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'border-2 border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--dads-sumi-900)]'
+                        : 'border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)] hover:bg-[var(--dads-white)] text-[var(--dads-sumi-900)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-3.5 h-3.5 rounded-full shrink-0"
+                        style={{ backgroundColor: dotHex }}
+                      />
+                      <span className="whitespace-nowrap">{config.label}</span>
+                    </div>
+                    {isSelected && <Check strokeWidth={2.5} className="h-4 w-4 text-[var(--color-primary)] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 行2: 土日祝日の翌営業日補正 */}
+          <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
+            <div className="min-w-0 space-y-0.5">
               <div className="flex items-center gap-2">
-                <CalendarCheck strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
+                <CalendarCheck strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
                 <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
                   土日祝日の翌営業日補正
                 </h3>
               </div>
-              <label className="dads-switch" aria-label="土日祝日の翌営業日補正を切り替え">
-                <input
-                  type="checkbox"
-                  checked={adjustForBankHolidays}
-                  onChange={(e) => onToggleBankHolidayAdjustment(e.target.checked)}
-                />
-                <span className="dads-switch-track">
-                  <span className="dads-switch-thumb" />
-                </span>
-              </label>
+              <p className="text-xs text-[var(--dads-sumi-700)] leading-snug">
+                休日の支払日を翌営業日に自動シフト（カード個別設定も可）
+              </p>
             </div>
 
-            <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-              支払日が土日祝日等の金融機関休業日と重なった場合に、自動的に「翌営業日」に補正してスケジュールを計算します。
-            </p>
-          </div>
-
-          <div className="p-2.5 rounded-[4px] bg-[var(--dads-gray-100)] border border-[var(--dads-gray-300)] text-xs text-[var(--dads-sumi-700)] flex items-start gap-2">
-            <Info strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0 mt-0.5" />
-            <span>カード編集画面からカードごとに個別にON/OFFを指定することも可能です。</span>
+            <label className="dads-switch" aria-label="土日祝日の翌営業日補正を切り替え">
+              <input
+                type="checkbox"
+                checked={adjustForBankHolidays}
+                onChange={(e) => onToggleBankHolidayAdjustment(e.target.checked)}
+              />
+              <span className="dads-switch-track">
+                <span className="dads-switch-thumb" />
+              </span>
+            </label>
           </div>
         </div>
+      </section>
 
-        {/* 3. データのバックアップ・保存 */}
-        <div className="dads-card p-4 sm:p-5 space-y-3.5">
-          <div className="flex items-center justify-between pb-2.5 border-b border-[var(--dads-gray-200)]">
-            <div className="flex items-center gap-2">
-              <Download strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
-              <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
-                バックアップの保存
-              </h3>
-            </div>
-            <span className="dads-tag font-mono">
-              カード{cards.length}件 / 口座{accounts.length}件
-            </span>
-          </div>
-
-          <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-            登録済みのカードや口座情報をJSONファイルとしてダウンロードします。端末変更時や万が一の控えとして保管できます。
-          </p>
-
-          <button
-            type="button"
-            onClick={handleExport}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] theme-bg-primary text-white text-xs sm:text-sm font-bold transition-all cursor-pointer"
-          >
-            <Download strokeWidth={1.75} className="h-4 w-4" />
-            <span>バックアップをダウンロード (.json)</span>
-          </button>
+      {/* ========================================================
+          2. データ管理
+          ======================================================== */}
+      <section aria-label="データ管理" className="space-y-2.5">
+        <div className="dads-section-header">
+          <h2 className="dads-section-title">データ管理</h2>
+          <span className="dads-tag font-mono">
+            カード{cards.length}件 / 口座{accounts.length}件
+          </span>
         </div>
 
-        {/* 4. データの復元 */}
-        <div className="dads-card p-4 sm:p-5 space-y-3.5">
-          <div className="flex items-center justify-between pb-2.5 border-b border-[var(--dads-gray-200)]">
-            <div className="flex items-center gap-2">
-              <Upload strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
-              <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
-                データの復元（読み込み）
-              </h3>
-            </div>
-          </div>
-
-          <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-            過去にダウンロードしたバックアップJSONファイルを選択して、アプリ内に登録データを復元します。
+        <div className="dads-card p-3.5 sm:p-4 space-y-3">
+          <p className="text-xs sm:text-sm text-[var(--dads-sumi-700)]">
+            JSON形式でバックアップの保存・復元ができます。
           </p>
 
           <input
@@ -326,100 +293,133 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             className="hidden"
           />
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] border border-[var(--color-primary)] bg-[var(--dads-white)] hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] text-xs sm:text-sm font-bold transition-all cursor-pointer"
-          >
-            <Upload strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
-            <span>ファイルを選択して復元</span>
-          </button>
-        </div>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={handleExport}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] theme-bg-primary text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+            >
+              <Download strokeWidth={1.75} className="h-4 w-4" />
+              <span>バックアップを保存</span>
+            </button>
 
-      {/* 5. ホーム画面に追加してアプリとして使う */}
-      <div className="dads-card p-4 sm:p-5 space-y-3.5">
-        <div className="flex items-center justify-between pb-2.5 border-b border-[var(--dads-gray-200)]">
-          <div className="flex items-center gap-2">
-            <Smartphone strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
-            <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
-              ホーム画面への追加（アプリ化）
-            </h3>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] border border-[var(--color-primary)] bg-[var(--dads-white)] hover:bg-[var(--color-primary-subtle)] dark:hover:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+            >
+              <Upload strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)]" />
+              <span>ファイルから復元</span>
+            </button>
           </div>
-          {isStandalone && (
-            <span className="text-xs font-bold text-[var(--dads-success)] bg-[var(--dads-success-bg)] px-2 py-0.5 rounded-[4px] border border-[var(--dads-success)] flex items-center gap-1">
-              <Check strokeWidth={2} className="h-3.5 w-3.5" />
-              アプリモード稼働中
-            </span>
-          )}
+        </div>
+      </section>
+
+      {/* ========================================================
+          3. アプリ・その他
+          ======================================================== */}
+      <section aria-label="アプリ・その他" className="space-y-2.5">
+        <div className="dads-section-header">
+          <h2 className="dads-section-title">アプリ・その他</h2>
         </div>
 
-        <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-          スマートフォンのホーム画面に追加すると、ブラウザのアドレスバーが非表示になり、専用アプリとして全画面で起動できます。
-        </p>
+        <div className="dads-card divide-y divide-[var(--dads-gray-200)]">
+          {/* 行1: ホーム画面に追加（アプリ化） */}
+          <div className="p-3.5 sm:p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Smartphone strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
+                  ホーム画面に追加（アプリ化）
+                </h3>
+              </div>
 
-        {/* Android Chrome で利用可能な「ワンタップ追加」ボタン */}
-        {deferredPrompt && (
-          <button
-            type="button"
-            onClick={handleInstallClick}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] theme-bg-primary text-white text-xs sm:text-sm font-bold transition-all cursor-pointer"
-          >
-            <Smartphone strokeWidth={1.75} className="h-4 w-4" />
-            <span>ホーム画面にアプリを追加</span>
-          </button>
-        )}
-
-        {/* 手動追加のステップ案内 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-          {/* iPhone / iPad (Safari) */}
-          <div className="p-3 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]/60 space-y-1.5 text-xs">
-            <div className="font-bold text-[var(--dads-sumi-900)] flex items-center gap-1.5">
-              <Smartphone strokeWidth={1.75} className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-              <span>iPhone / iPad（Safari）</span>
+              {isStandalone ? (
+                <span className="text-xs font-bold text-[var(--dads-success)] bg-[var(--dads-success-bg)] px-2 py-0.5 rounded-[4px] border border-[var(--dads-success)] flex items-center gap-1 shrink-0">
+                  <Check strokeWidth={2} className="h-3.5 w-3.5" />
+                  稼働中
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowInstallSteps((prev) => !prev)}
+                  className="dads-action-btn shrink-0"
+                  aria-expanded={showInstallSteps}
+                >
+                  <span>{showInstallSteps ? '手順を閉じる' : '追加手順'}</span>
+                  {showInstallSteps ? (
+                    <ChevronUp strokeWidth={2} className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronDown strokeWidth={2} className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
             </div>
-            <ol className="list-decimal list-inside space-y-1 text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-              <li>
-                画面下の「<Share2 strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>共有</strong>」ボタンをタップ
-              </li>
-              <li>
-                メニューから「<PlusSquare strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>ホーム画面に追加</strong>」を選択
-              </li>
-              <li>右上の「追加」をタップして完了</li>
-            </ol>
+
+            {/* Android Chrome 等で利用可能な「ワンタップ追加」ボタン */}
+            {deferredPrompt && (
+              <button
+                type="button"
+                onClick={handleInstallClick}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-[4px] theme-bg-primary text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+              >
+                <Smartphone strokeWidth={1.75} className="h-4 w-4" />
+                <span>ホーム画面にアプリを追加</span>
+              </button>
+            )}
+
+            {/* 折りたたみ式：手動追加手順 */}
+            {showInstallSteps && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <div className="p-3 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)] space-y-1.5 text-xs">
+                  <div className="font-bold text-[var(--dads-sumi-900)] flex items-center gap-1.5">
+                    <Smartphone strokeWidth={1.75} className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                    <span>iPhone / iPad（Safari）</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-xs text-[var(--dads-sumi-700)] leading-relaxed">
+                    <li>
+                      画面下の「<Share2 strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>共有</strong>」をタップ
+                    </li>
+                    <li>
+                      「<PlusSquare strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>ホーム画面に追加</strong>」を選択
+                    </li>
+                    <li>右上の「追加」をタップして完了</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)] space-y-1.5 text-xs">
+                  <div className="font-bold text-[var(--dads-sumi-900)] flex items-center gap-1.5">
+                    <Smartphone strokeWidth={1.75} className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                    <span>Android（Chrome）</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-xs text-[var(--dads-sumi-700)] leading-relaxed">
+                    <li>
+                      右上の「<MoreVertical strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>メニュー</strong>」をタップ
+                    </li>
+                    <li>
+                      「<strong>アプリをインストール</strong>」または「<strong>ホーム画面に追加</strong>」を選択
+                    </li>
+                    <li>「インストール」をタップして完了</li>
+                  </ol>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Android (Chrome) */}
-          <div className="p-3 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]/60 space-y-1.5 text-xs">
-            <div className="font-bold text-[var(--dads-sumi-900)] flex items-center gap-1.5">
-              <Smartphone strokeWidth={1.75} className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-              <span>Android（Chrome）</span>
+          {/* 行2: プライバシーとデータ保存 */}
+          <div className="p-3.5 sm:p-4 flex items-start gap-2.5">
+            <Shield strokeWidth={1.75} className="h-4 w-4 text-[var(--color-primary)] shrink-0 mt-0.5" />
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
+                プライバシーとデータ保存
+              </h3>
+              <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
+                登録データは端末内（ブラウザ）のみに保存され、外部サーバーへ送信されません。
+              </p>
             </div>
-            <ol className="list-decimal list-inside space-y-1 text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-              <li>
-                右上の「<MoreVertical strokeWidth={1.75} className="inline h-3.5 w-3.5 text-[var(--color-primary)] mx-0.5" /> <strong>メニュー</strong>」をタップ
-              </li>
-              <li>
-                「<strong>アプリをインストール</strong>」または「<strong>ホーム画面に追加</strong>」を選択
-              </li>
-              <li>確認画面で「インストール」をタップして完了</li>
-            </ol>
           </div>
         </div>
-      </div>
-
-      {/* 6. プライバシーとデータ保護の安心カード */}
-      <div className="dads-card p-4 sm:p-5 space-y-2">
-        <div className="flex items-center gap-2 text-[var(--color-primary)]">
-          <Shield strokeWidth={1.75} className="h-4 w-4" />
-          <h3 className="text-sm sm:text-base font-bold text-[var(--dads-sumi-900)]">
-            プライバシー・データ保護について
-          </h3>
-        </div>
-        <p className="text-xs text-[var(--dads-sumi-700)] leading-relaxed">
-          本アプリは登録情報（クレジットカード名、口座名、支払日など）を外部サーバーへ送信することはありません。すべてのデータはお使いの端末（ブラウザのLocalStorage）内にのみ保存されます。
-        </p>
-      </div>
+      </section>
     </div>
   );
 };

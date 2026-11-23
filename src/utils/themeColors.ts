@@ -31,8 +31,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#70B0FF',  // DADS Dark Primary Text/Border
     darkBtnBgHex: '#0037D6',    // DADS Dark Primary Button Fill
     darkBtnHoverHex: '#2563EB',
-    subtleDarkHex: 'rgba(59, 130, 246, 0.18)',
-    subtleDarkBorderHex: 'rgba(112, 176, 255, 0.38)',
+    subtleDarkHex: '#172554',
+    subtleDarkBorderHex: '#3B82F6',
     swatchDarkHex: '#60A5FA',
   },
   orange: {
@@ -45,8 +45,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#FB923C',
     darkBtnBgHex: '#D94E0F',
     darkBtnHoverHex: '#EA580C',
-    subtleDarkHex: 'rgba(249, 115, 22, 0.18)',
-    subtleDarkBorderHex: 'rgba(251, 146, 60, 0.38)',
+    subtleDarkHex: '#431407',
+    subtleDarkBorderHex: '#EA580C',
     swatchDarkHex: '#FB923C',
   },
   green: {
@@ -59,8 +59,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#4ADE80',
     darkBtnBgHex: '#197A4B',
     darkBtnHoverHex: '#22995E',
-    subtleDarkHex: 'rgba(25, 122, 75, 0.24)',
-    subtleDarkBorderHex: 'rgba(74, 222, 128, 0.38)',
+    subtleDarkHex: '#052E16',
+    subtleDarkBorderHex: '#16A34A',
     swatchDarkHex: '#34D399',
   },
   purple: {
@@ -73,8 +73,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#C4B5FD',
     darkBtnBgHex: '#6D28D9',
     darkBtnHoverHex: '#7C3AED',
-    subtleDarkHex: 'rgba(139, 92, 246, 0.20)',
-    subtleDarkBorderHex: 'rgba(196, 181, 253, 0.38)',
+    subtleDarkHex: '#2E1065',
+    subtleDarkBorderHex: '#7C3AED',
     swatchDarkHex: '#A78BFA',
   },
   red: {
@@ -87,8 +87,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#FCA5A5',
     darkBtnBgHex: '#C81E1E',
     darkBtnHoverHex: '#DC2626',
-    subtleDarkHex: 'rgba(220, 38, 38, 0.20)',
-    subtleDarkBorderHex: 'rgba(252, 165, 165, 0.38)',
+    subtleDarkHex: '#450A0A',
+    subtleDarkBorderHex: '#DC2626',
     swatchDarkHex: '#F87171',
   },
   slate: {
@@ -101,8 +101,8 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
     darkPrimaryHex: '#E2E8F0',
     darkBtnBgHex: '#475569',
     darkBtnHoverHex: '#64748B',
-    subtleDarkHex: 'rgba(148, 163, 184, 0.20)',
-    subtleDarkBorderHex: 'rgba(226, 232, 240, 0.38)',
+    subtleDarkHex: '#1E293B',
+    subtleDarkBorderHex: '#64748B',
     swatchDarkHex: '#94A3B8',
   },
 };

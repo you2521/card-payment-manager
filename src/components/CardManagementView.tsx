@@ -88,15 +88,15 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                 key={card.id}
                 className="dads-card p-3 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex items-center gap-3 group"
               >
-                {/* 左側：支払日タイル（DADS 4px 角丸、高視認性） */}
+                {/* 左側：支払日タイル（完全固定幅・ソリッドカラー） */}
                 <div
                   onClick={() => onEditCard(card)}
-                  className="flex flex-col items-center justify-center min-w-[66px] sm:min-w-[74px] h-[60px] sm:h-[66px] rounded-[4px] theme-bg-subtle border text-center shrink-0 p-1.5 cursor-pointer"
+                  className="flex flex-col items-center justify-center w-[74px] sm:w-[82px] h-[60px] sm:h-[66px] rounded-[4px] theme-bg-primary text-white text-center shrink-0 p-1.5 cursor-pointer"
                 >
-                  <span className="text-[11px] font-bold text-[var(--dads-sumi-700)] leading-none">
+                  <span className="text-[11px] font-bold text-white/90 leading-none">
                     毎月
                   </span>
-                  <span className="text-base sm:text-lg font-mono font-bold text-[var(--color-primary)] leading-tight mt-1">
+                  <span className="text-base sm:text-lg font-mono font-bold text-white leading-tight mt-1 whitespace-nowrap">
                     {formatPaymentDay(card)}
                   </span>
                 </div>

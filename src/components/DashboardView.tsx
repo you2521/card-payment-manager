@@ -247,18 +247,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => onEditCard(upcomingGroup.items[0].card)}
             className="dads-card p-3 sm:p-4 border-[var(--color-primary)] hover:bg-[var(--dads-gray-100)]/40 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
           >
-            {/* 左側：日付＆残り日数タイル (角丸 4px) */}
-            <div className="flex flex-col items-center justify-center min-w-[74px] sm:min-w-[82px] py-2 px-1.5 rounded-[4px] theme-bg-subtle border text-center shrink-0">
-              <span className="text-xs font-bold text-[var(--dads-sumi-900)] leading-none">
+            {/* 左側：日付＆残り日数タイル (完全固定幅・ソリッドカラー) */}
+            <div className="flex flex-col items-center justify-center w-[84px] sm:w-[92px] py-2 px-1 rounded-[4px] theme-bg-primary text-white text-center shrink-0">
+              <span className="text-xs font-bold text-white/90 leading-none whitespace-nowrap">
                 {upcomingGroup.nextDateWithWeekday}
               </span>
               <span
-                className={`text-base sm:text-lg font-mono font-bold leading-tight mt-1.5 ${
-                  upcomingGroup.isToday
-                    ? 'text-[var(--dads-danger)]'
-                    : upcomingGroup.isTomorrow
-                    ? 'text-[var(--dads-warning-text)]'
-                    : 'text-[var(--color-primary)]'
+                className={`text-base sm:text-lg font-mono font-bold text-white leading-tight mt-1.5 whitespace-nowrap ${
+                  upcomingGroup.isToday || upcomingGroup.isTomorrow
+                    ? 'underline decoration-2 underline-offset-4'
+                    : ''
                 }`}
               >
                 {upcomingGroup.isToday
@@ -267,7 +265,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   ? '明日'
                   : `あと${upcomingGroup.daysLeft}日`}
               </span>
-              <span className="text-[11px] text-[var(--dads-sumi-700)] font-bold leading-none mt-1">
+              <span className="text-[10px] text-white/90 font-bold leading-none mt-1 whitespace-nowrap">
                 {upcomingGroup.items.length}件の予定
               </span>
             </div>
@@ -364,16 +362,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => onEditCard(group.items[0].card)}
                 className="dads-card p-3 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex items-center justify-between gap-3 cursor-pointer group"
               >
-                {/* 左側：DADS 4px角丸タイル */}
-                <div className="flex flex-col items-center justify-center min-w-[72px] sm:min-w-[80px] py-2 px-1.5 rounded-[4px] theme-bg-subtle border text-center shrink-0">
-                  <span className="text-xs font-bold text-[var(--dads-sumi-900)] leading-none">
+                {/* 左側：DADS 4px角丸タイル (完全固定幅・ソリッドカラー) */}
+                <div className="flex flex-col items-center justify-center w-[84px] sm:w-[92px] py-2 px-1 rounded-[4px] theme-bg-primary text-white text-center shrink-0">
+                  <span className="text-xs font-bold text-white/90 leading-none whitespace-nowrap">
                     {group.nextDateWithWeekday}
                   </span>
-                  <span className="text-base sm:text-lg font-mono font-bold text-[var(--color-primary)] leading-tight mt-1.5">
+                  <span className="text-base sm:text-lg font-mono font-bold text-white leading-tight mt-1.5 whitespace-nowrap">
                     あと{group.daysLeft}日
                   </span>
                   {group.isAdjusted && (
-                    <span className="text-[10px] text-[var(--dads-warning-text)] font-bold leading-none mt-1">
+                    <span className="text-[10px] text-white/90 font-bold leading-none mt-1 whitespace-nowrap">
                       翌営業日
                     </span>
                   )}
