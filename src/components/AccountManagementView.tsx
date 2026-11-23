@@ -63,10 +63,10 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* DADS セクション見出し（左 4px ソリッドバー + 追加ボタン維持） */}
-      <div className="flex items-center justify-between pb-0.5">
+      <div className="flex items-center justify-between gap-2 pb-0.5">
         <div className="dads-section-header">
           <div className="flex items-center gap-2">
-            <h2 className="dads-section-title">引き落とし口座一覧</h2>
+            <h2 className="dads-section-title">引き落とし口座</h2>
             <span className="dads-counter-badge">全 {accounts.length} 口座</span>
           </div>
         </div>
@@ -121,8 +121,10 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                       >
                         {account.name}
                       </button>
-                      <div className="flex items-center gap-2 text-xs text-[var(--dads-sumi-700)] mt-0.5">
+                      <div className="flex items-center gap-1.5 text-xs text-[var(--dads-sumi-700)] mt-0.5 flex-wrap">
                         <span>{account.accountType || '普通'}預金</span>
+                        <span>·</span>
+                        <span>{linkedCards.length}枚連携</span>
                         {account.branchName && (
                           <>
                             <span>·</span>
@@ -133,11 +135,8 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                     </div>
                   </div>
 
-                  {/* 連携カード数バッジ ＆ DADS 4px角丸アクションボタン */}
+                  {/* DADS 4px角丸アクションボタン */}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="dads-counter-badge font-mono">
-                      {linkedCards.length}枚連携
-                    </span>
 
                     <button
                       type="button"
@@ -160,11 +159,10 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                   </div>
                 </div>
 
-                {/* カード中央：紐づくクレジットカードタグ一覧 (DADS 4px角丸タグ) */}
-                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[var(--dads-sumi-700)] flex-wrap">
-                  <span className="text-xs font-bold text-[var(--dads-sumi-700)]">紐づくカード:</span>
+                {/* カード中央：紐づくクレジットカード一覧（枠線なしの軽量チップで統一） */}
+                <div>
                   {linkedCards.length === 0 ? (
-                    <span className="text-xs text-[var(--dads-sumi-500)]">未設定（カード未紐付け）</span>
+                    <span className="text-xs text-[var(--dads-sumi-500)]">カード未紐付け</span>
                   ) : (
                     <div className="flex flex-wrap gap-1.5">
                       {linkedCards.map((c) => {
@@ -172,7 +170,7 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                         return (
                           <span
                             key={c.id}
-                            className="dads-tag px-2.5 py-1 text-xs sm:text-[13px]"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-[var(--dads-gray-100)] text-xs sm:text-[13px] font-bold text-[var(--dads-sumi-900)]"
                           >
                             <span
                               className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -186,12 +184,12 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                   )}
                 </div>
 
-                {/* カード下部：直近引き落とし予定情報（[次回]タグ化で見切れゼロ） */}
+                {/* カード下部：直近引き落とし予定情報（シンプルなテキスト表現で枠線を削減） */}
                 {nearestPayment && (
                   <div className="pt-2.5 border-t border-[var(--dads-gray-200)] flex items-center justify-between gap-2 text-xs sm:text-sm">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      <span className="dads-counter-badge px-1.5 py-0.5 text-[11px] shrink-0">
-                        次回
+                      <span className="text-xs font-bold text-[var(--dads-sumi-700)] shrink-0">
+                        次回:
                       </span>
                       <span className="font-bold text-[var(--dads-sumi-900)] truncate">
                         {nearestPayment.cardName}
