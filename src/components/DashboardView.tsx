@@ -242,10 +242,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </div>
 
-          {/* DADS フラットカード（外枠8px角丸、内側タイル4px角丸、シャドウなし） */}
+          {/* DADS 強調カード（次回引き落とし予定：2px テーマカラー枠で囲う） */}
           <div
             onClick={() => onEditCard(upcomingGroup.items[0].card)}
-            className="dads-card p-3 sm:p-4 border-[var(--color-primary)] hover:bg-[var(--dads-gray-100)]/40 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
+            className="dads-card-highlight p-3 sm:p-4 hover:bg-[var(--dads-gray-100)]/40 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
           >
             {/* 左側：日付＆残り日数タイル (完全固定幅・ソリッドカラー) */}
             <div className="flex flex-col items-center justify-center w-[84px] sm:w-[92px] py-2 px-1 rounded-[4px] theme-bg-primary text-white text-center shrink-0">
@@ -362,16 +362,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => onEditCard(group.items[0].card)}
                 className="dads-card p-3 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex items-center justify-between gap-3 cursor-pointer group"
               >
-                {/* 左側：DADS 4px角丸タイル (完全固定幅・ソリッドカラー) */}
-                <div className="flex flex-col items-center justify-center w-[84px] sm:w-[92px] py-2 px-1 rounded-[4px] theme-bg-primary text-white text-center shrink-0">
-                  <span className="text-xs font-bold text-white/90 leading-none whitespace-nowrap">
+                {/* 左側：DADS 4px角丸タイル (完全固定幅・優しめの縁だけスタイル) */}
+                <div className="flex flex-col items-center justify-center w-[84px] sm:w-[92px] py-2 px-1 rounded-[4px] bg-[var(--dads-gray-100)] border border-[var(--color-primary)] text-center shrink-0">
+                  <span className="text-xs font-bold text-[var(--dads-sumi-900)] leading-none whitespace-nowrap">
                     {group.nextDateWithWeekday}
                   </span>
-                  <span className="text-base sm:text-lg font-mono font-bold text-white leading-tight mt-1.5 whitespace-nowrap">
+                  <span className="text-base sm:text-lg font-mono font-bold text-[var(--color-primary)] leading-tight mt-1.5 whitespace-nowrap">
                     あと{group.daysLeft}日
                   </span>
                   {group.isAdjusted && (
-                    <span className="text-[10px] text-white/90 font-bold leading-none mt-1 whitespace-nowrap">
+                    <span className="text-[10px] text-[var(--dads-warning-text)] font-bold leading-none mt-1 whitespace-nowrap">
                       翌営業日
                     </span>
                   )}
