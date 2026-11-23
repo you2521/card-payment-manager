@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CreditCard as CardIcon, Calendar, Check, Info, Trash2 } from 'lucide-react';
+import { X, CreditCard as CardIcon, Check, Trash2 } from 'lucide-react';
 import { CreditCard, BankAccount, PaymentDayType } from '../types';
 import { suggestCardColor } from '../utils/colorSuggester';
 import { BRAND_COLORS, getBrandColorConfig } from '../utils/colors';
@@ -16,19 +16,28 @@ interface CardModalProps {
 }
 
 const COLOR_OPTIONS = [
-  { id: 'indigo', label: 'インディゴ', bg: 'bg-indigo-600' },
-  { id: 'blue', label: 'ブルー', bg: 'bg-blue-600' },
-  { id: 'cyan', label: 'シアン', bg: 'bg-cyan-600' },
-  { id: 'teal', label: 'ティール', bg: 'bg-teal-600' },
-  { id: 'emerald', label: 'エメラルド', bg: 'bg-emerald-600' },
-  { id: 'amber', label: 'アンバー', bg: 'bg-amber-600' },
-  { id: 'orange', label: 'オレンジ', bg: 'bg-orange-600' },
-  { id: 'rose', label: 'ローズ', bg: 'bg-rose-600' },
-  { id: 'purple', label: 'パープル', bg: 'bg-purple-600' },
-  { id: 'fuchsia', label: 'ピンク', bg: 'bg-fuchsia-600' },
-  { id: 'slate', label: 'スレート', bg: 'bg-slate-600' },
-  { id: 'gold', label: 'ゴールド', bg: 'bg-yellow-600' },
+  { id: 'indigo', label: 'インディゴ' },
+  { id: 'blue', label: 'ブルー' },
+  { id: 'cyan', label: 'シアン' },
+  { id: 'teal', label: 'ティール' },
+  { id: 'emerald', label: 'エメラルド' },
+  { id: 'amber', label: 'アンバー' },
+  { id: 'orange', label: 'オレンジ' },
+  { id: 'rose', label: 'ローズ' },
+  { id: 'purple', label: 'パープル' },
+  { id: 'fuchsia', label: 'ピンク' },
+  { id: 'slate', label: 'スレート' },
+  { id: 'gold', label: 'ゴールド' },
 ];
+
+const isLightHexColor = (hex: string): boolean => {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return false;
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b > 175;
+};
 
 export const CardModal: React.FC<CardModalProps> = ({
   isOpen,
@@ -113,23 +122,26 @@ export const CardModal: React.FC<CardModalProps> = ({
     onClose();
   };
 
+  const selectedColorLabel = COLOR_OPTIONS.find((c) => c.id === brandColor)?.label || 'カスタム';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 animate-fadeIn">
       <div className="relative w-full max-w-lg rounded-[8px] border border-[var(--dads-gray-300)] bg-[var(--dads-white)] overflow-hidden text-[var(--dads-sumi-900)] animate-scaleIn">
         {/* モーダルヘッダー */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 border-b border-[var(--dads-gray-200)] bg-[var(--dads-white)]">
           <div className="flex items-center gap-2">
-            <CardIcon className="h-5 w-5 text-[var(--color-primary)]" />
+            <CardIcon strokeWidth={1.75} className="h-5 w-5 text-[var(--color-primary)]" />
             <h2 className="text-base sm:text-lg font-bold">
-              {editingCard ? 'クレジットカード情報の変更' : 'クレジットカード新規登録'}
+              {editingCard ? 'クレジットカードの編集' : 'クレジットカード新規登録'}
             </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="dads-action-btn px-2"
+            className="p-1.5 rounded-[4px] text-[var(--dads-sumi-500)] hover:bg-[var(--dads-gray-100)] hover:text-[var(--dads-sumi-900)] transition-colors cursor-pointer"
             title="閉じる"
           >
-            <X className="h-4 w-4" />
+            <X strokeWidth={2} className="h-4.5 w-4.5" />
           </button>
         </div>
 
@@ -147,9 +159,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 カード名
               </label>
-              <span className="bg-[var(--dads-danger)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[3px]">
-                必須
-              </span>
+              <span className="text-[11px] font-bold text-[var(--dads-danger)]">必須</span>
             </div>
             <input
               type="text"
@@ -159,44 +169,37 @@ export const CardModal: React.FC<CardModalProps> = ({
               placeholder="例: 楽天カード, 三井住友カード, JALカード"
               className="w-full rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-2 text-sm text-[var(--dads-sumi-900)] placeholder-[var(--dads-sumi-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
-            {suggestion && (
-              <div className="mt-1.5 flex items-center justify-between text-xs px-2.5 py-1.5 rounded-[4px] bg-[var(--dads-warning-bg)] border border-[var(--dads-warning-border)] text-[var(--dads-warning-text)]">
-                <span className="flex items-center gap-1 font-medium">
-                  <Info strokeWidth={1.75} className="h-3.5 w-3.5" />
-                  <span>おすすめ色: <strong>{suggestion.label}</strong> ({suggestion.reason})</span>
-                </span>
-                {brandColor !== suggestion.colorId && (
-                  <button
-                    type="button"
-                    onClick={() => setBrandColor(suggestion.colorId)}
-                    className="font-bold underline ml-2 cursor-pointer"
-                  >
-                    適用
-                  </button>
-                )}
+            {suggestion && brandColor !== suggestion.colorId && (
+              <div className="mt-1.5 flex items-center justify-between text-xs text-[var(--dads-sumi-700)]">
+                <span>ブランド推奨色があります</span>
+                <button
+                  type="button"
+                  onClick={() => setBrandColor(suggestion.colorId)}
+                  className="font-bold text-[var(--color-primary)] underline cursor-pointer"
+                >
+                  おすすめ色（{suggestion.label}）を適用
+                </button>
               </div>
             )}
           </div>
 
           {/* 支払日設定 */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 支払日（引き落とし日）
               </label>
-              <span className="bg-[var(--dads-danger)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[3px]">
-                必須
-              </span>
+              <span className="text-[11px] font-bold text-[var(--dads-danger)]">必須</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentDayType('day')}
-                className={`p-2.5 rounded-[4px] border text-xs font-bold transition-all text-center cursor-pointer ${
+                className={`py-2 px-3 rounded-[4px] text-xs font-bold transition-colors text-center cursor-pointer ${
                   paymentDayType === 'day'
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
-                    : 'border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-[var(--dads-sumi-700)]'
+                    ? 'border-2 border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
+                    : 'border border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-[var(--dads-sumi-700)] hover:bg-[var(--dads-gray-100)]'
                 }`}
               >
                 毎月指定日（1〜31日）
@@ -204,10 +207,10 @@ export const CardModal: React.FC<CardModalProps> = ({
               <button
                 type="button"
                 onClick={() => setPaymentDayType('end_of_month')}
-                className={`p-2.5 rounded-[4px] border text-xs font-bold transition-all text-center cursor-pointer ${
+                className={`py-2 px-3 rounded-[4px] text-xs font-bold transition-colors text-center cursor-pointer ${
                   paymentDayType === 'end_of_month'
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
-                    : 'border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-[var(--dads-sumi-700)]'
+                    ? 'border-2 border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)]'
+                    : 'border border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-[var(--dads-sumi-700)] hover:bg-[var(--dads-gray-100)]'
                 }`}
               >
                 毎月末日
@@ -215,12 +218,12 @@ export const CardModal: React.FC<CardModalProps> = ({
             </div>
 
             {paymentDayType === 'day' && (
-              <div className="flex items-center gap-2 bg-[var(--dads-gray-100)] p-2.5 rounded-[4px] border border-[var(--dads-gray-300)]">
-                <span className="text-xs font-bold text-[var(--dads-sumi-700)]">毎月</span>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-700)]">毎月</span>
                 <select
                   value={paymentDayValue}
                   onChange={(e) => setPaymentDayValue(Number(e.target.value))}
-                  className="rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-1.5 text-sm font-bold font-mono focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  className="rounded-[4px] bg-[var(--dads-white)] border border-[var(--dads-gray-300)] px-3 py-1.5 text-sm font-bold font-mono text-[var(--dads-sumi-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                     <option key={day} value={day}>
@@ -228,21 +231,20 @@ export const CardModal: React.FC<CardModalProps> = ({
                     </option>
                   ))}
                 </select>
-                <span className="text-xs font-bold text-[var(--dads-sumi-700)]">に引き落とし</span>
+                <span className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-700)]">に引き落とし</span>
               </div>
             )}
 
-            {/* カード個別：土日祝日の営業日補正トグル (DADS Switch) */}
-            <div className="flex items-center justify-between p-2.5 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-gray-100)]/60 transition-colors">
-              <div className="space-y-0.5">
-                <div className="text-xs font-bold text-[var(--dads-sumi-900)] flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-                  <span>土日・祝日の引き落とし日補正</span>
+            {/* カード個別：土日祝日の営業日補正トグル */}
+            <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-[var(--dads-gray-200)]">
+              <div className="space-y-0.5 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
+                  土日・祝日の引き落とし日補正
                 </div>
                 <p className="text-[11px] text-[var(--dads-sumi-700)]">
                   {adjustForBankHolidays
-                    ? '支払日が休日の場合は翌営業日に自動シフト'
-                    : '休日でもシフトせず該当日付のまま表示'}
+                    ? '休日の場合は翌営業日に自動シフト'
+                    : '休日でも日付をシフトせず表示'}
                 </p>
               </div>
               <label className="dads-switch">
@@ -264,19 +266,17 @@ export const CardModal: React.FC<CardModalProps> = ({
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 引き落とし銀行口座
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {onOpenAddAccountModal && (
                   <button
                     type="button"
                     onClick={onOpenAddAccountModal}
                     className="text-xs font-bold text-[var(--color-primary)] underline cursor-pointer"
                   >
-                    + 口座を新規追加
+                    + 口座を追加
                   </button>
                 )}
-                <span className="bg-[var(--dads-danger)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[3px]">
-                  必須
-                </span>
+                <span className="text-[11px] font-bold text-[var(--dads-danger)]">必須</span>
               </div>
             </div>
 
@@ -317,9 +317,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 締め日
               </label>
-              <span className="dads-tag text-[10px] py-0.5">
-                任意
-              </span>
+              <span className="text-[11px] text-[var(--dads-sumi-500)]">任意</span>
             </div>
             <input
               type="text"
@@ -330,39 +328,49 @@ export const CardModal: React.FC<CardModalProps> = ({
             />
           </div>
 
-          {/* カラー設定（任意） */}
+          {/* カラー設定（丸スウォッチ 6列×2行） */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center justify-between mb-2.5">
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 カードカラー
               </label>
-              <label className="flex items-center gap-1 text-xs text-[var(--dads-sumi-700)] cursor-pointer">
-                <span>カスタム色:</span>
-                <input
-                  type="color"
-                  value={brandColor.startsWith('#') ? brandColor : (BRAND_COLORS[brandColor]?.hex || '#0047AB')}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="w-5 h-5 rounded-[3px] border-0 cursor-pointer p-0 bg-transparent"
-                />
-              </label>
+              <div className="flex items-center gap-2.5 text-xs">
+                <span className="font-bold text-[var(--dads-sumi-700)]">{selectedColorLabel}</span>
+                <label className="flex items-center gap-1 text-[var(--dads-sumi-500)] cursor-pointer">
+                  <span>カスタム</span>
+                  <input
+                    type="color"
+                    value={brandColor.startsWith('#') ? brandColor : (BRAND_COLORS[brandColor]?.hex || '#0047AB')}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="w-5 h-5 rounded-[3px] border border-[var(--dads-gray-300)] cursor-pointer p-0 bg-transparent"
+                  />
+                </label>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {COLOR_OPTIONS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setBrandColor(c.id)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] border text-xs transition-all cursor-pointer ${
-                    brandColor === c.id
-                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)] dark:bg-[var(--color-primary-subtle-dark)] text-[var(--color-primary)] font-bold'
-                      : 'border-[var(--dads-gray-300)] text-[var(--dads-sumi-900)]'
-                  }`}
-                >
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: getBrandColorConfig(c.id, isDark).hex }} />
-                  <span>{c.label}</span>
-                  {brandColor === c.id && <Check className="h-3 w-3 text-[var(--color-primary)]" />}
-                </button>
-              ))}
+            <div className="grid grid-cols-6 gap-2.5 justify-items-center">
+              {COLOR_OPTIONS.map((c) => {
+                const hex = getBrandColorConfig(c.id, isDark).hex;
+                const isSelected = brandColor === c.id;
+                const checkColorClass = isLightHexColor(hex) ? 'text-[#1A1A1C]' : 'text-white';
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setBrandColor(c.id)}
+                    title={c.label}
+                    aria-label={c.label}
+                    aria-pressed={isSelected}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
+                      isSelected
+                        ? 'ring-2 ring-offset-2 ring-[var(--color-primary)] ring-offset-[var(--dads-white)] scale-105'
+                        : 'hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: hex }}
+                  >
+                    {isSelected && <Check strokeWidth={3} className={`h-4 w-4 ${checkColorClass}`} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -372,9 +380,7 @@ export const CardModal: React.FC<CardModalProps> = ({
               <label className="text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)]">
                 メモ・用途
               </label>
-              <span className="dads-tag text-[10px] py-0.5">
-                任意
-              </span>
+              <span className="text-[11px] text-[var(--dads-sumi-500)]">任意</span>
             </div>
             <textarea
               rows={2}
@@ -386,7 +392,7 @@ export const CardModal: React.FC<CardModalProps> = ({
           </div>
 
           {/* フッター操作ボタン */}
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[var(--dads-gray-300)]">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[var(--dads-gray-200)]">
             <div>
               {editingCard && onDeleteCard && (
                 <button
@@ -395,9 +401,9 @@ export const CardModal: React.FC<CardModalProps> = ({
                     onDeleteCard(editingCard.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-[4px] border border-[var(--dads-danger)] text-[var(--dads-danger)] hover:bg-[var(--dads-danger-bg)] text-xs font-bold cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2 py-2 rounded-[4px] text-[var(--dads-danger)] hover:bg-[var(--dads-danger-bg)] text-xs sm:text-sm font-bold cursor-pointer transition-colors"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 strokeWidth={1.75} className="h-4 w-4" />
                   <span>削除する</span>
                 </button>
               )}
@@ -407,14 +413,14 @@ export const CardModal: React.FC<CardModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-xs font-bold text-[var(--dads-sumi-900)] hover:bg-[var(--dads-gray-100)] cursor-pointer"
+                className="px-4 py-2 rounded-[4px] border border-[var(--dads-gray-300)] bg-[var(--dads-white)] text-xs sm:text-sm font-bold text-[var(--dads-sumi-900)] hover:bg-[var(--dads-gray-100)] cursor-pointer transition-colors"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={bankAccounts.length === 0}
-                className="px-5 py-2 rounded-[4px] theme-bg-primary text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-[4px] theme-bg-primary text-white text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition-colors"
               >
                 {editingCard ? '更新する' : '登録する'}
               </button>

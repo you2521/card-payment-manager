@@ -38,16 +38,16 @@ export const THEME_COLOR_PRESETS: Record<ThemeAccentColor, ExtendedThemeColorCon
   orange: {
     id: 'orange',
     label: 'オレンジ',
-    primaryHex: '#C2410C',      // DADS Orange 800
-    hoverHex: '#9A3412',        // DADS Orange 900
-    lightBgHex: '#FFF7ED',      // DADS Orange 50
-    lightBorderHex: '#FED7AA',  // DADS Orange 200
-    darkPrimaryHex: '#FB923C',
-    darkBtnBgHex: '#D94E0F',
-    darkBtnHoverHex: '#EA580C',
-    subtleDarkHex: '#431407',
-    subtleDarkBorderHex: '#EA580C',
-    swatchDarkHex: '#FB923C',
+    primaryHex: '#FF8709',      // 清水エスパルス Primary Color
+    hoverHex: '#E07200',
+    lightBgHex: '#FFF5E8',
+    lightBorderHex: '#FFCF99',
+    darkPrimaryHex: '#FF8709',
+    darkBtnBgHex: '#FF8709',
+    darkBtnHoverHex: '#E07200',
+    subtleDarkHex: '#3B1E00',
+    subtleDarkBorderHex: '#FF8709',
+    swatchDarkHex: '#FF8709',
   },
   green: {
     id: 'green',
