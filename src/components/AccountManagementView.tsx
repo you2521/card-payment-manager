@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { BankAccount, CreditCard } from '../types';
 import { getDaysUntilNextPayment } from '../utils/paymentUtils';
 import { getBrandColorConfig, getAccessibleColorHex } from '../utils/colors';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, ChevronRight } from 'lucide-react';
 
 interface AccountManagementViewProps {
   accounts: BankAccount[];
@@ -19,7 +19,6 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
   isDark = false,
   onOpenAddAccount,
   onEditAccount,
-  onDeleteAccount,
 }) => {
   // 口座ごとに紐づくカードと、その口座の直近引き落とし予定を計算
   const accountsWithDetails = useMemo(() => {
@@ -102,9 +101,10 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
             return (
               <div
                 key={account.id}
-                className="dads-card p-3.5 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex flex-col gap-3 group"
+                onClick={() => onEditAccount(account)}
+                className="dads-card p-3.5 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex flex-col gap-3 cursor-pointer group"
               >
-                {/* カード上部：口座名・種別・アクション */}
+                {/* カード上部：口座名・種別・シェブロン */}
                 <div className="flex items-start justify-between gap-2.5">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     {/* 口座カラーバッジ */}
@@ -113,14 +113,9 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                       style={{ backgroundColor: accColor }}
                     />
                     <div className="min-w-0 flex-1">
-                      <button
-                        type="button"
-                        onClick={() => onEditAccount(account)}
-                        className="text-base sm:text-lg font-bold text-[var(--dads-sumi-900)] hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left block truncate w-full tracking-tight leading-snug"
-                        title={`${account.name} を編集`}
-                      >
+                      <span className="text-base sm:text-lg font-bold text-[var(--dads-sumi-900)] group-hover:text-[var(--color-primary)] block truncate w-full tracking-tight leading-snug">
                         {account.name}
-                      </button>
+                      </span>
                       <div className="flex items-center gap-1.5 text-xs text-[var(--dads-sumi-700)] mt-0.5 flex-wrap">
                         <span>{account.accountType || '普通'}預金</span>
                         <span>·</span>
@@ -135,28 +130,11 @@ export const AccountManagementView: React.FC<AccountManagementViewProps> = ({
                     </div>
                   </div>
 
-                  {/* DADS 4px角丸アクションボタン */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-
-                    <button
-                      type="button"
-                      onClick={() => onEditAccount(account)}
-                      title="口座情報を編集"
-                      className="dads-action-btn hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                    >
-                      <Pencil strokeWidth={1.75} className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">編集</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteAccount(account.id)}
-                      title="口座を削除"
-                      className="dads-action-btn hover:border-[var(--dads-danger)] hover:text-[var(--dads-danger)]"
-                    >
-                      <Trash2 strokeWidth={1.75} className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">削除</span>
-                    </button>
-                  </div>
+                  {/* 右端：シンプルな線シェブロン（編集・削除はタップ後のモーダルから実行） */}
+                  <ChevronRight
+                    strokeWidth={1.75}
+                    className="h-5 w-5 text-[var(--dads-sumi-500)] group-hover:text-[var(--color-primary)] transition-colors shrink-0 mt-0.5"
+                  />
                 </div>
 
                 {/* カード中央：紐づくクレジットカード一覧（枠線なしの軽量チップで統一） */}

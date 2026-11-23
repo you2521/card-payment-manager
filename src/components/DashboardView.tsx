@@ -190,11 +190,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             次回引き落とし
           </span>
           {upcomingGroup ? (
-            <span className="dads-counter-badge">
+            <span className="text-sm sm:text-base font-mono font-bold text-[var(--color-primary)] whitespace-nowrap">
               {upcomingGroup.nextDateFormatted} ({upcomingGroup.isToday ? '本日' : upcomingGroup.isTomorrow ? '明日' : `${upcomingGroup.daysLeft}日後`})
             </span>
           ) : (
-            <span className="dads-tag text-[var(--dads-sumi-700)]">予定なし</span>
+            <span className="text-sm font-bold text-[var(--dads-sumi-500)] whitespace-nowrap">予定なし</span>
           )}
         </div>
 
@@ -205,7 +205,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <span className="text-[11px] font-bold text-[var(--dads-sumi-700)] whitespace-nowrap">
             登録カード
           </span>
-          <span className="dads-tag">
+          <span className="text-sm sm:text-base font-mono font-bold text-[var(--dads-sumi-900)] whitespace-nowrap">
             全 {cards.length} 枚
           </span>
         </div>
@@ -217,7 +217,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <span className="text-[11px] font-bold text-[var(--dads-sumi-700)] whitespace-nowrap">
             引き落とし口座
           </span>
-          <span className="dads-tag">
+          <span className="text-sm sm:text-base font-mono font-bold text-[var(--dads-sumi-900)] whitespace-nowrap">
             全 {accounts.length} 口座
           </span>
         </div>
@@ -228,16 +228,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ======================================================== */}
       {upcomingGroup && (
         <section aria-label="次回引き落とし予定" className="space-y-2.5">
-          {/* DADS セクション見出し（左 4px ソリッドバー + 右端 4px バッジ） */}
+          {/* DADS セクション見出し（左 4px ソリッドバー） */}
           <div className="dads-section-header">
             <h2 className="dads-section-title">次回引き落とし予定</h2>
-            {upcomingGroup.isAdjusted ? (
+            {upcomingGroup.isAdjusted && (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-[4px] bg-[var(--dads-warning-bg)] text-[var(--dads-warning-text)] border border-[var(--dads-warning-border)]">
                 ※{upcomingGroup.adjustmentReason}
-              </span>
-            ) : (
-              <span className="dads-counter-badge">
-                対象 {upcomingGroup.items.length} 枚
               </span>
             )}
           </div>

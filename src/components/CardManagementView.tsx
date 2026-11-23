@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { CreditCard, BankAccount } from '../types';
 import { formatPaymentDay, getBankAccount, sortCardsByPaymentDay } from '../utils/paymentUtils';
 import { getBrandColorConfig, getAccessibleColorHex } from '../utils/colors';
-import { Plus, Pencil, Trash2, Calendar, Landmark, AlertCircle } from 'lucide-react';
+import { Plus, ChevronRight, Calendar, Landmark, AlertCircle } from 'lucide-react';
 
 interface CardManagementViewProps {
   cards: CreditCard[];
@@ -20,7 +20,6 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
   isDark = false,
   onOpenAddCard,
   onEditCard,
-  onDeleteCard,
   onOpenAddAccount,
 }) => {
   // 支払日順に安定ソート（4日 -> 10日 -> 27日 -> 月末）
@@ -86,13 +85,11 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
             return (
               <div
                 key={card.id}
-                className="dads-card p-3 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex items-center gap-3 group"
+                onClick={() => onEditCard(card)}
+                className="dads-card p-3 sm:p-4 hover:border-[var(--color-primary)] transition-colors flex items-center gap-3 cursor-pointer group"
               >
                 {/* 左側：支払日タイル（完全固定幅・優しめの縁だけスタイル） */}
-                <div
-                  onClick={() => onEditCard(card)}
-                  className="flex flex-col items-center justify-center w-[74px] sm:w-[82px] h-[60px] sm:h-[66px] rounded-[4px] bg-[var(--dads-gray-100)] border border-[var(--color-primary)] text-center shrink-0 p-1.5 cursor-pointer"
-                >
+                <div className="flex flex-col items-center justify-center w-[74px] sm:w-[82px] h-[60px] sm:h-[66px] rounded-[4px] bg-[var(--dads-gray-100)] border border-[var(--color-primary)] text-center shrink-0 p-1.5">
                   <span className="text-[11px] font-bold text-[var(--dads-sumi-700)] leading-none">
                     毎月
                   </span>
@@ -101,7 +98,7 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                   </span>
                 </div>
 
-                {/* 右側コンテンツ（2段構成：上段=カード名に横幅100%を確保、下段=口座・タグ＋操作ボタン） */}
+                {/* 中央コンテンツ（2段構成：上段=カード名、下段=口座・タグ） */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
                   {/* 上段：ドット + カード名（右端まで全幅を使えるため「ビックカメラSuicaカード」等も見切れゼロ） */}
                   <div className="flex items-center gap-2 min-w-0">
@@ -109,80 +106,57 @@ export const CardManagementView: React.FC<CardManagementViewProps> = ({
                       className="w-3 h-3 rounded-full shrink-0"
                       style={{ backgroundColor: brandCfg.hex }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => onEditCard(card)}
-                      className="text-base sm:text-lg font-bold text-[var(--dads-sumi-900)] hover:text-[var(--color-primary)] hover:underline cursor-pointer text-left truncate tracking-tight leading-snug flex-1 min-w-0"
-                      title={`${card.name} を編集`}
-                    >
+                    <span className="text-base sm:text-lg font-bold text-[var(--dads-sumi-900)] group-hover:text-[var(--color-primary)] truncate tracking-tight leading-snug flex-1 min-w-0">
                       {card.name}
-                    </button>
+                    </span>
                   </div>
 
-                  {/* 下段 (.bottom-bar)：左に口座名・締め日タグ、右にDADS 4px角丸アクションボタン */}
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                      {account ? (
-                        <div className="inline-flex items-center gap-1.5 min-w-0 text-xs sm:text-sm">
-                          <Landmark
-                            strokeWidth={1.75}
-                            className="h-3.5 w-3.5 shrink-0"
-                            style={{ color: accColor }}
-                          />
-                          <span className="font-bold text-[var(--dads-sumi-900)] truncate max-w-[160px] sm:max-w-none">
-                            {account.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[var(--dads-danger)] font-bold text-xs">
-                          <AlertCircle strokeWidth={1.75} className="h-3.5 w-3.5 shrink-0" />
-                          <span>口座未設定</span>
+                  {/* 下段：口座名・締め日タグ */}
+                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                    {account ? (
+                      <div className="inline-flex items-center gap-1.5 min-w-0 text-xs sm:text-sm">
+                        <Landmark
+                          strokeWidth={1.75}
+                          className="h-3.5 w-3.5 shrink-0"
+                          style={{ color: accColor }}
+                        />
+                        <span className="font-bold text-[var(--dads-sumi-900)] truncate max-w-[180px] sm:max-w-none">
+                          {account.name}
                         </span>
-                      )}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[var(--dads-danger)] font-bold text-xs">
+                        <AlertCircle strokeWidth={1.75} className="h-3.5 w-3.5 shrink-0" />
+                        <span>口座未設定</span>
+                      </span>
+                    )}
 
-                      {card.closingDay && (
-                        <span className="dads-tag text-[11px] font-medium">
-                          <Calendar strokeWidth={1.75} className="h-3 w-3 text-[var(--dads-sumi-700)]" />
-                          <span>{card.closingDay}</span>
-                        </span>
-                      )}
+                    {card.closingDay && (
+                      <span className="dads-tag text-[11px] font-medium">
+                        <Calendar strokeWidth={1.75} className="h-3 w-3 text-[var(--dads-sumi-700)]" />
+                        <span>{card.closingDay}</span>
+                      </span>
+                    )}
 
-                      {card.adjustForBankHolidays === false && (
-                        <span className="dads-tag text-[11px] text-[var(--dads-sumi-700)]">
-                          休日補正なし
-                        </span>
-                      )}
+                    {card.adjustForBankHolidays === false && (
+                      <span className="dads-tag text-[11px] text-[var(--dads-sumi-700)]">
+                        休日補正なし
+                      </span>
+                    )}
 
-                      {card.memo && (
-                        <span className="text-xs text-[var(--dads-sumi-700)] truncate">
-                          · {card.memo}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* 右端：DADS 4px角丸アクションボタン */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onEditCard(card)}
-                        title="カード情報を編集"
-                        className="dads-action-btn hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                      >
-                        <Pencil strokeWidth={1.75} className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">編集</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteCard(card.id)}
-                        title="カードを削除"
-                        className="dads-action-btn hover:border-[var(--dads-danger)] hover:text-[var(--dads-danger)]"
-                      >
-                        <Trash2 strokeWidth={1.75} className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">削除</span>
-                      </button>
-                    </div>
+                    {card.memo && (
+                      <span className="text-xs text-[var(--dads-sumi-700)] truncate">
+                        · {card.memo}
+                      </span>
+                    )}
                   </div>
                 </div>
+
+                {/* 右側：シンプルな線シェブロン（編集・削除はカードタップ後のモーダルから実行） */}
+                <ChevronRight
+                  strokeWidth={1.75}
+                  className="h-5 w-5 text-[var(--dads-sumi-500)] group-hover:text-[var(--color-primary)] transition-colors shrink-0"
+                />
               </div>
             );
           })}
